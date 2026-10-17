@@ -1,0 +1,73 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  username  String   @unique
+  password  String
+  name      String   @default("Administrator")
+  role      String   @default("ADMIN")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Service {
+  id          String   @id @default(cuid())
+  title       String
+  slug        String   @unique
+  category    String
+  type        String   @default("CONSULTING") // PDF, IMAGE, VIDEO, PACKAGE, CONSULTING
+  shortDesc   String
+  description String
+  features    String   @default("") // Semicolon or comma separated
+  fileUrl     String?
+  imageUrl    String?
+  priceInfo   String?  @default("Custom Consultation / Inquiry")
+  isFeatured  Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model News {
+  id        String   @id @default(cuid())
+  title     String
+  slug      String   @unique
+  category  String   @default("Insight")
+  summary   String
+  content   String
+  author    String   @default("Nexa SBCC Team")
+  imageUrl  String?
+  published Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model ServiceInquiry {
+  id             String   @id @default(cuid())
+  name           String
+  organization   String?
+  email          String
+  phone          String?
+  serviceType    String
+  projectScope   String
+  targetAudience String?
+  timeline       String?
+  status         String   @default("PENDING")
+  createdAt      DateTime @default(now())
+}
+
+model ContactMessage {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  subject   String
+  message   String
+  status    String   @default("UNREAD")
+  createdAt DateTime @default(now())
+}
