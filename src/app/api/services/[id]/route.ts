@@ -37,23 +37,28 @@ export async function PUT(
     const { id } = await params;
     const data = await req.json();
 
-    const updated = await prisma.service.update({
-      where: { id },
-      data: {
-        title: data.title,
-        category: data.category,
-        type: data.type,
-        shortDesc: data.shortDesc,
-        description: data.description,
-        features: data.features,
-        fileUrl: data.fileUrl,
-        imageUrl: data.imageUrl,
-        priceInfo: data.priceInfo,
-        isFeatured: Boolean(data.isFeatured),
-      },
-    });
+    try {
+      const updated = await prisma.service.update({
+        where: { id },
+        data: {
+          title: data.title,
+          category: data.category,
+          type: data.type,
+          shortDesc: data.shortDesc,
+          description: data.description,
+          features: data.features,
+          fileUrl: data.fileUrl,
+          imageUrl: data.imageUrl,
+          priceInfo: data.priceInfo,
+          isFeatured: Boolean(data.isFeatured),
+        },
+      });
 
-    return NextResponse.json({ success: true, service: updated });
+      return NextResponse.json({ success: true, service: updated });
+    } catch (dbErr) {
+      console.warn('Failed to update service in DB:', dbErr);
+      return NextResponse.json({ error: 'Database is in read-only mode or record was not found.' }, { status: 400 });
+    }
   } catch (error) {
     console.error('Error updating service:', error);
     return NextResponse.json({ error: 'Failed to update service' }, { status: 500 });
@@ -71,11 +76,16 @@ export async function DELETE(
     }
 
     const { id } = await params;
-    await prisma.service.delete({
-      where: { id },
-    });
+    try {
+      await prisma.service.delete({
+        where: { id },
+      });
 
-    return NextResponse.json({ success: true });
+      return NextResponse.json({ success: true });
+    } catch (dbErr) {
+      console.warn('Failed to delete service from DB:', dbErr);
+      return NextResponse.json({ error: 'Database is in read-only mode or record was not found.' }, { status: 400 });
+    }
   } catch (error) {
     console.error('Error deleting service:', error);
     return NextResponse.json({ error: 'Failed to delete service' }, { status: 500 });

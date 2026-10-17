@@ -37,20 +37,25 @@ export async function PUT(
     const { id } = await params;
     const data = await req.json();
 
-    const updated = await prisma.news.update({
-      where: { id },
-      data: {
-        title: data.title,
-        category: data.category,
-        summary: data.summary,
-        content: data.content,
-        author: data.author,
-        imageUrl: data.imageUrl,
-        published: Boolean(data.published),
-      },
-    });
+    try {
+      const updated = await prisma.news.update({
+        where: { id },
+        data: {
+          title: data.title,
+          category: data.category,
+          summary: data.summary,
+          content: data.content,
+          author: data.author,
+          imageUrl: data.imageUrl,
+          published: Boolean(data.published),
+        },
+      });
 
-    return NextResponse.json({ success: true, news: updated });
+      return NextResponse.json({ success: true, news: updated });
+    } catch (dbErr) {
+      console.warn('Failed to update news in DB:', dbErr);
+      return NextResponse.json({ error: 'Database is in read-only mode or record was not found.' }, { status: 400 });
+    }
   } catch (error) {
     console.error('Error updating news:', error);
     return NextResponse.json({ error: 'Failed to update news' }, { status: 500 });
@@ -68,11 +73,16 @@ export async function DELETE(
     }
 
     const { id } = await params;
-    await prisma.news.delete({
-      where: { id },
-    });
+    try {
+      await prisma.news.delete({
+        where: { id },
+      });
 
-    return NextResponse.json({ success: true });
+      return NextResponse.json({ success: true });
+    } catch (dbErr) {
+      console.warn('Failed to delete news from DB:', dbErr);
+      return NextResponse.json({ error: 'Database is in read-only mode or record was not found.' }, { status: 400 });
+    }
   } catch (error) {
     console.error('Error deleting news:', error);
     return NextResponse.json({ error: 'Failed to delete news' }, { status: 500 });

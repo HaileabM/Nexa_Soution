@@ -49,25 +49,32 @@ export async function POST(req: NextRequest) {
       .replace(/(^-|-$)+/g, '');
     const uniqueSlug = `${baseSlug}-${Date.now().toString().slice(-4)}`;
 
-    const newService = await prisma.service.create({
-      data: {
-        title,
-        slug: uniqueSlug,
-        category: category || 'Consulting',
-        type: type || 'CONSULTING',
-        shortDesc,
-        description,
-        features: features || '',
-        fileUrl: fileUrl || null,
-        imageUrl: imageUrl || 'https://images.unsplash.com/photo-1576091160550-2173dba999ef?auto=format&fit=crop&w=800&q=80',
-        priceInfo: priceInfo || 'Custom Consultation / Inquire via Email',
-        isFeatured: Boolean(isFeatured),
-      },
-    });
+    try {
+      const newService = await prisma.service.create({
+        data: {
+          title,
+          slug: uniqueSlug,
+          category: category || 'Consulting',
+          type: type || 'CONSULTING',
+          shortDesc,
+          description,
+          features: features || '',
+          fileUrl: fileUrl || null,
+          imageUrl: imageUrl || 'https://images.unsplash.com/photo-1576091160550-2173dba999ef?auto=format&fit=crop&w=800&q=80',
+          priceInfo: priceInfo || 'Custom Consultation / Inquire via Email',
+          isFeatured: Boolean(isFeatured),
+        },
+      });
 
-    return NextResponse.json({ success: true, service: newService }, { status: 201 });
-  } catch (error) {
+      return NextResponse.json({ success: true, service: newService }, { status: 201 });
+    } catch (dbErr) {
+      console.error('Error creating service in database:', dbErr);
+      return NextResponse.json({
+        error: 'Database is unavailable or in read-only mode. Connect a cloud database (e.g. Supabase, Neon PostgreSQL) to save services permanently.'
+      }, { status: 400 });
+    }
+  } catch (error: any) {
     console.error('Error creating service:', error);
-    return NextResponse.json({ error: 'Failed to create service' }, { status: 500 });
+    return NextResponse.json({ error: error?.message || 'Failed to create service' }, { status: 500 });
   }
 }

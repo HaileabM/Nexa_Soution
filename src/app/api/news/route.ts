@@ -43,22 +43,29 @@ export async function POST(req: NextRequest) {
       .replace(/(^-|-$)+/g, '');
     const uniqueSlug = `${baseSlug}-${Date.now().toString().slice(-4)}`;
 
-    const newArticle = await prisma.news.create({
-      data: {
-        title,
-        slug: uniqueSlug,
-        category: category || 'Insight',
-        summary,
-        content,
-        author: author || 'Nexa SBCC Team',
-        imageUrl: imageUrl || 'https://images.unsplash.com/photo-1532938911079-1b06ac7ceec7?auto=format&fit=crop&w=800&q=80',
-        published: published !== undefined ? Boolean(published) : true,
-      },
-    });
+    try {
+      const newArticle = await prisma.news.create({
+        data: {
+          title,
+          slug: uniqueSlug,
+          category: category || 'Insight',
+          summary,
+          content,
+          author: author || 'Nexa SBCC Team',
+          imageUrl: imageUrl || 'https://images.unsplash.com/photo-1532938911079-1b06ac7ceec7?auto=format&fit=crop&w=800&q=80',
+          published: published !== undefined ? Boolean(published) : true,
+        },
+      });
 
-    return NextResponse.json({ success: true, news: newArticle }, { status: 201 });
-  } catch (error) {
+      return NextResponse.json({ success: true, news: newArticle }, { status: 201 });
+    } catch (dbErr) {
+      console.error('Error creating news in database:', dbErr);
+      return NextResponse.json({
+        error: 'Database is unavailable or in read-only mode. Connect a cloud database (e.g. Supabase, Neon PostgreSQL) to save news permanently.'
+      }, { status: 400 });
+    }
+  } catch (error: any) {
     console.error('Error creating news:', error);
-    return NextResponse.json({ error: 'Failed to create news' }, { status: 500 });
+    return NextResponse.json({ error: error?.message || 'Failed to create news' }, { status: 500 });
   }
 }

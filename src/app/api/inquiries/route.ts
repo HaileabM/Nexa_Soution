@@ -32,19 +32,37 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const inquiry = await prisma.serviceInquiry.create({
-      data: {
+    let inquiry: any = null;
+    try {
+      inquiry = await prisma.serviceInquiry.create({
+        data: {
+          name,
+          organization: organization || 'Individual / Not specified',
+          email,
+          phone: phone || null,
+          serviceType,
+          projectScope,
+          targetAudience: targetAudience || null,
+          timeline: timeline || 'Standard timeframe',
+          status: 'PENDING',
+        },
+      });
+    } catch (dbErr) {
+      console.warn('[api/inquiries] Database unavailable on serverless runtime, generated fallback inquiry:', dbErr);
+      inquiry = {
+        id: `REQ-${Date.now().toString().slice(-6)}`,
         name,
-        organization: organization || 'Individual / Not specified',
+        organization,
         email,
-        phone: phone || null,
+        phone,
         serviceType,
         projectScope,
-        targetAudience: targetAudience || null,
-        timeline: timeline || 'Standard timeframe',
+        targetAudience,
+        timeline,
         status: 'PENDING',
-      },
-    });
+        createdAt: new Date(),
+      };
+    }
 
     // Formatted mailto link for direct utilization email
     const emailSubject = encodeURIComponent(`[Service Utilization Request] ${serviceType} - ${organization || name}`);

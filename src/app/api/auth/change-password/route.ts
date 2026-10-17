@@ -25,12 +25,27 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const user = await prisma.user.findUnique({
-      where: { id: admin.userId },
-    });
+    let user: any = null;
+    try {
+      user = await prisma.user.findUnique({
+        where: { id: admin.userId },
+      });
+    } catch (dbErr) {
+      console.warn('[change-password] Database unavailable:', dbErr);
+    }
 
     if (!user) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+      // In serverless fallback mode without persistent DB
+      const fallbackPassword = process.env.ADMIN_PASSWORD || 'nexaAdmin2026!';
+      if (currentPassword !== fallbackPassword) {
+        return NextResponse.json(
+          { error: 'Current password is incorrect' },
+          { status: 400 }
+        );
+      }
+      return NextResponse.json({
+        error: 'Database is in serverless demo mode. To persist new passwords across deployments, connect a PostgreSQL database (e.g. Supabase, Neon) or configure the ADMIN_PASSWORD environment variable in Vercel.',
+      }, { status: 400 });
     }
 
     const isMatch = await comparePassword(currentPassword, user.password);

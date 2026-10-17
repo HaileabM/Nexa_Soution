@@ -36,7 +36,17 @@ export default async function AdminDashboardPage() {
     newsList = results[1];
     inquiries = results[2];
   } catch (err) {
-    console.warn('[AdminDashboardPage] Database queries failed:', err);
+    console.warn('[AdminDashboardPage] Database queries failed, loading fallback data:', err);
+  }
+
+  if (!services || services.length === 0) {
+    const { FALLBACK_SERVICES } = await import('@/lib/fallbackData');
+    services = FALLBACK_SERVICES as any[];
+  }
+
+  if (!newsList || newsList.length === 0) {
+    const { FALLBACK_NEWS } = await import('@/lib/fallbackData');
+    newsList = FALLBACK_NEWS as any[];
   }
 
   return (

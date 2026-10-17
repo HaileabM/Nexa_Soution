@@ -15,12 +15,17 @@ export async function PUT(
     const { id } = await params;
     const { status } = await req.json();
 
-    const updated = await prisma.serviceInquiry.update({
-      where: { id },
-      data: { status },
-    });
+    try {
+      const updated = await prisma.serviceInquiry.update({
+        where: { id },
+        data: { status },
+      });
 
-    return NextResponse.json({ success: true, inquiry: updated });
+      return NextResponse.json({ success: true, inquiry: updated });
+    } catch (dbErr) {
+      console.warn('Failed to update inquiry in DB:', dbErr);
+      return NextResponse.json({ error: 'Database is in read-only mode or record was not found.' }, { status: 400 });
+    }
   } catch (error) {
     return NextResponse.json({ error: 'Failed to update inquiry' }, { status: 500 });
   }
@@ -37,11 +42,16 @@ export async function DELETE(
     }
 
     const { id } = await params;
-    await prisma.serviceInquiry.delete({
-      where: { id },
-    });
+    try {
+      await prisma.serviceInquiry.delete({
+        where: { id },
+      });
 
-    return NextResponse.json({ success: true });
+      return NextResponse.json({ success: true });
+    } catch (dbErr) {
+      console.warn('Failed to delete inquiry from DB:', dbErr);
+      return NextResponse.json({ error: 'Database is in read-only mode or record was not found.' }, { status: 400 });
+    }
   } catch (error) {
     return NextResponse.json({ error: 'Failed to delete inquiry' }, { status: 500 });
   }
