@@ -21,10 +21,20 @@ export const metadata = {
   description: 'Explore our health awareness packages (PDF handbooks, PNG infographics, videos) and SBCC consulting services. Order via nexasolutionsethiopia@gmail.com.',
 };
 
+import { FALLBACK_SERVICES, ServiceItem } from '@/lib/fallbackData';
+
 export default async function ServicesPage() {
-  const services = await prisma.service.findMany({
-    orderBy: [{ isFeatured: 'desc' }, { createdAt: 'desc' }],
-  });
+  let services: ServiceItem[] = [];
+
+  try {
+    const dbServices = await prisma.service.findMany({
+      orderBy: [{ isFeatured: 'desc' }, { createdAt: 'desc' }],
+    });
+    services = dbServices.length > 0 ? (dbServices as unknown as ServiceItem[]) : FALLBACK_SERVICES;
+  } catch (err) {
+    console.warn('[ServicesPage] Database unavailable, rendering with resilient fallback data:', err);
+    services = FALLBACK_SERVICES;
+  }
 
   return (
     <PublicLayout>

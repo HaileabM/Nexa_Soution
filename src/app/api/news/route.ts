@@ -14,8 +14,9 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({ news });
   } catch (error) {
-    console.error('Error fetching news:', error);
-    return NextResponse.json({ error: 'Failed to fetch news' }, { status: 500 });
+    console.error('Error fetching news from DB, returning fallback:', error);
+    const { FALLBACK_NEWS } = await import('@/lib/fallbackData');
+    return NextResponse.json({ news: FALLBACK_NEWS });
   }
 }
 

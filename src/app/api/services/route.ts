@@ -21,8 +21,9 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({ services });
   } catch (error) {
-    console.error('Error fetching services:', error);
-    return NextResponse.json({ error: 'Failed to fetch services' }, { status: 500 });
+    console.error('Error fetching services from DB, returning fallback:', error);
+    const { FALLBACK_SERVICES } = await import('@/lib/fallbackData');
+    return NextResponse.json({ services: FALLBACK_SERVICES });
   }
 }
 

@@ -20,21 +20,34 @@ import {
   UserCheck,
 } from 'lucide-react';
 
+import { FALLBACK_SERVICES, FALLBACK_NEWS, ServiceItem, NewsItem } from '@/lib/fallbackData';
+
 export const revalidate = 0; // Fresh data for dynamic news and services
 
 export default async function HomePage() {
-  const [featuredServices, recentNews] = await Promise.all([
-    prisma.service.findMany({
-      where: { isFeatured: true },
-      take: 4,
-      orderBy: { createdAt: 'desc' },
-    }),
-    prisma.news.findMany({
-      where: { published: true },
-      take: 3,
-      orderBy: { createdAt: 'desc' },
-    }),
-  ]);
+  let featuredServices: ServiceItem[] = [];
+  let recentNews: NewsItem[] = [];
+
+  try {
+    const [dbServices, dbNews] = await Promise.all([
+      prisma.service.findMany({
+        where: { isFeatured: true },
+        take: 4,
+        orderBy: { createdAt: 'desc' },
+      }),
+      prisma.news.findMany({
+        where: { published: true },
+        take: 3,
+        orderBy: { createdAt: 'desc' },
+      }),
+    ]);
+    featuredServices = dbServices.length > 0 ? (dbServices as unknown as ServiceItem[]) : FALLBACK_SERVICES.filter((s) => s.isFeatured).slice(0, 4);
+    recentNews = dbNews.length > 0 ? (dbNews as unknown as NewsItem[]) : FALLBACK_NEWS.slice(0, 3);
+  } catch (err) {
+    console.warn('[HomePage] Database unavailable, rendering with resilient fallback data:', err);
+    featuredServices = FALLBACK_SERVICES.filter((s) => s.isFeatured).slice(0, 4);
+    recentNews = FALLBACK_NEWS.slice(0, 3);
+  }
 
   return (
     <PublicLayout>
