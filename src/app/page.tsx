@@ -8,16 +8,17 @@ import {
   Video,
   ArrowRight,
   Sparkles,
-  ShieldCheck,
-  TrendingUp,
-  BrainCircuit,
-  Compass,
-  Layers,
-  HeartPulse,
-  Mail,
   CheckCircle,
-  Clock,
-  UserCheck,
+  BrainCircuit,
+  TrendingUp,
+  Mail,
+  Layers,
+  Search,
+  PenTool,
+  BarChart3,
+  Users,
+  Wrench,
+  Download,
 } from 'lucide-react';
 
 import { FALLBACK_SERVICES, FALLBACK_NEWS, ServiceItem, NewsItem } from '@/lib/fallbackData';
@@ -58,63 +59,32 @@ export default async function HomePage() {
         <div className="container">
           <div className="hero-tag">
             <Sparkles size={16} />
-            <span>Nexa Solutions • SBCC Consulting Ethiopia</span>
+            <span>Nexa Solutions • SBCC Strategies Ethiopia</span>
           </div>
 
           <h1 className="hero-title">
-            Turning evidence about people and behavior into{' '}
-            <span style={{ color: 'var(--c1-blue)' }}>practical communication solutions.</span>
+            Turning evidence to <span style={{ color: 'var(--c1-blue)' }}>practical solutions.</span>
           </h1>
 
           <p className="hero-subtitle">
-            Evidence-informed Social and Behavior Change Communication (SBCC), research, strategy, and health awareness media designed for health and development programs across Ethiopia.
+            Evidence-informed Social and Behavior Change Communication (SBCC), research, strategy, and health awareness media for health and development programs across Ethiopia.
           </p>
 
           <div className="hero-actions">
-            <Link href="/services#utilize" className="btn btn-primary btn-lg">
+            <Link href="/request-service" className="btn btn-primary btn-lg">
               <Mail size={18} />
-              <span>Utilize Our Services</span>
+              <span>Request Service</span>
             </Link>
             <Link href="/services" className="btn btn-outline btn-lg">
               <span>Explore Materials & Packages</span>
               <ArrowRight size={18} />
             </Link>
           </div>
-
-          {/* Quick Metrics Bar */}
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-            gap: '1.5rem',
-            marginTop: '4.5rem',
-            maxWidth: '1000px',
-            marginLeft: 'auto',
-            marginRight: 'auto',
-          }}>
-            <div className="card" style={{ padding: '1.5rem', textAlign: 'center' }}>
-              <div style={{ fontSize: '2.25rem', fontWeight: 800, color: 'var(--c1-blue)', marginBottom: '0.25rem' }}>
-                Evidence
-              </div>
-              <p style={{ fontSize: '0.875rem' }}>Grounded in qualitative and quantitative field insight</p>
-            </div>
-            <div className="card" style={{ padding: '1.5rem', textAlign: 'center' }}>
-              <div style={{ fontSize: '2.25rem', fontWeight: 800, color: 'var(--c2-teal)', marginBottom: '0.25rem' }}>
-                Creativity
-              </div>
-              <p style={{ fontSize: '0.875rem' }}>PDFs, high-impact PNG posters & campaign videos</p>
-            </div>
-            <div className="card" style={{ padding: '1.5rem', textAlign: 'center' }}>
-              <div style={{ fontSize: '2.25rem', fontWeight: 800, color: 'var(--c1-blue)', marginBottom: '0.25rem' }}>
-                Impact
-              </div>
-              <p style={{ fontSize: '0.875rem' }}>Measurable behavior change for Ethiopia's future</p>
-            </div>
-          </div>
         </div>
       </section>
 
       {/* =================================================================
-          3 PILLARS SECTION (Page 1 of Document)
+          3 PILLARS SECTION (Evidence • Creativity • Impact)
           ================================================================= */}
       <section className="section" style={{ borderTop: '1px solid var(--border-color)', backgroundColor: 'var(--bg-card)' }}>
         <div className="container">
@@ -127,7 +97,7 @@ export default async function HomePage() {
           </div>
 
           <div className="grid-3">
-            {/* Pillar 1 */}
+            {/* Pillar 1: EVIDENCE */}
             <div className="card">
               <div style={{
                 width: '52px',
@@ -142,10 +112,10 @@ export default async function HomePage() {
               }}>
                 <BrainCircuit size={28} />
               </div>
-              <div className="badge badge-blue" style={{ marginBottom: '0.75rem' }}>01 — Understand</div>
+              <div className="badge badge-orange" style={{ marginBottom: '0.75rem' }}>01 — Understand</div>
               <h3 style={{ fontSize: '1.35rem', marginBottom: '0.75rem' }}>EVIDENCE</h3>
               <p style={{ marginBottom: '1.25rem' }}>
-                We start with people, context, data and behavioral insight. What is happening, for whom, where and why?
+                We start with people, context, data and behavioral insight grounded in qualitative and quantitative research.
               </p>
               <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.875rem', color: 'var(--text-muted)' }}>
                 <li style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
@@ -163,7 +133,7 @@ export default async function HomePage() {
               </ul>
             </div>
 
-            {/* Pillar 2 */}
+            {/* Pillar 2: CREATIVITY */}
             <div className="card">
               <div style={{
                 width: '52px',
@@ -186,27 +156,27 @@ export default async function HomePage() {
               <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.875rem', color: 'var(--text-muted)' }}>
                 <li style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                   <CheckCircle size={15} style={{ color: 'var(--c2-teal)' }} />
-                  <span>Health awareness PDF toolkits</span>
+                  <span>Health awareness guidelines</span>
                 </li>
                 <li style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                   <CheckCircle size={15} style={{ color: 'var(--c2-teal)' }} />
-                  <span>Bilingual PNG infographics & posters</span>
+                  <span>PNG info graphics and posters</span>
                 </li>
                 <li style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                   <CheckCircle size={15} style={{ color: 'var(--c2-teal)' }} />
-                  <span>Campaign videos & counseling aids</span>
+                  <span>Campaign videos</span>
                 </li>
               </ul>
             </div>
 
-            {/* Pillar 3 */}
+            {/* Pillar 3: IMPACT */}
             <div className="card">
               <div style={{
                 width: '52px',
                 height: '52px',
                 borderRadius: 'var(--radius-md)',
-                backgroundColor: 'var(--c1-blue-soft)',
-                color: 'var(--c1-blue)',
+                backgroundColor: 'var(--c3-purple-soft)',
+                color: 'var(--c3-purple)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -214,23 +184,19 @@ export default async function HomePage() {
               }}>
                 <TrendingUp size={28} />
               </div>
-              <div className="badge badge-blue" style={{ marginBottom: '0.75rem' }}>03 — Measure</div>
+              <div className="badge badge-purple" style={{ marginBottom: '0.75rem' }}>03 — Measure</div>
               <h3 style={{ fontSize: '1.35rem', marginBottom: '0.75rem' }}>IMPACT</h3>
               <p style={{ marginBottom: '1.25rem' }}>
                 We connect communication work to measurable behavioral and program outcomes. What evidence tells us change is happening?
               </p>
               <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.875rem', color: 'var(--text-muted)' }}>
                 <li style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <CheckCircle size={15} style={{ color: 'var(--c1-blue)' }} />
+                  <CheckCircle size={15} style={{ color: 'var(--c3-purple)' }} />
                   <span>Results & indicator frameworks</span>
                 </li>
                 <li style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <CheckCircle size={15} style={{ color: 'var(--c1-blue)' }} />
+                  <CheckCircle size={15} style={{ color: 'var(--c3-purple)' }} />
                   <span>Pre-testing & rapid iterations</span>
-                </li>
-                <li style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <CheckCircle size={15} style={{ color: 'var(--c1-blue)' }} />
-                  <span>Adaptive learning loops</span>
                 </li>
               </ul>
             </div>
@@ -239,82 +205,162 @@ export default async function HomePage() {
       </section>
 
       {/* =================================================================
-          SIGNATURE SBCC APPROACH (Page 3 of Document)
+          WHAT WE DO (Contents from Page 4 of Portfolio Document)
           ================================================================= */}
       <section className="section">
         <div className="container">
           <div className="section-header">
-            <span className="section-tag">Methodology</span>
-            <h2 className="section-title">Our Signature SBCC Approach</h2>
+            <span className="section-tag">What We Do</span>
+            <h2 className="section-title">Our SBCC Approach & Core Offerings</h2>
             <p className="section-subtitle">
-              A simple, disciplined way we think: moving from the problem to evidence, from insight to action, and continuous measurement.
+              Our services are designed around the work a client actually needs—not around abstract consulting labels.
             </p>
           </div>
 
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
-            gap: '1.25rem',
-            marginBottom: '3rem',
-          }}>
-            {[
-              { num: '01', title: 'Define the Problem', desc: 'Identify behavioral challenges and structural barriers.' },
-              { num: '02', title: 'Gather Evidence', desc: 'Synthesize existing literature, routine data, and field realities.' },
-              { num: '03', title: 'Find Behavioral Insight', desc: 'Uncover deep determinants, social norms, and decision drivers.' },
-              { num: '04', title: 'Design the SBCC Response', desc: 'Define precise behavioral objectives and segmented channels.' },
-              { num: '05', title: 'Create & Pretest', desc: 'Produce PDFs, visual PNG posters, and videos with target audiences.' },
-              { num: '06', title: 'Implement & Adapt', desc: 'Deploy tailored communication tools and support execution.' },
-              { num: '07', title: 'Measure • Learn • Improve', desc: 'Track indicators to feed learning back into future cycles.' },
-            ].map((step, idx) => (
-              <div key={step.num} className="card" style={{ padding: '1.5rem' }}>
-                <div style={{
-                  display: 'inline-block',
-                  fontSize: '0.85rem',
-                  fontWeight: 800,
-                  color: idx % 2 === 0 ? 'var(--c1-blue)' : 'var(--c2-teal)',
-                  marginBottom: '0.5rem',
-                }}>
-                  STEP {step.num}
-                </div>
-                <h4 style={{ fontSize: '1.15rem', marginBottom: '0.5rem' }}>{step.title}</h4>
-                <p style={{ fontSize: '0.875rem' }}>{step.desc}</p>
+          <div className="grid-3">
+            {/* Domain 1: Formative & Behavioral Research */}
+            <div className="card" style={{ borderLeft: '4px solid var(--c1-blue)' }}>
+              <div style={{
+                width: '46px',
+                height: '46px',
+                borderRadius: 'var(--radius-md)',
+                backgroundColor: 'var(--c1-blue-soft)',
+                color: 'var(--c1-blue)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginBottom: '1.25rem',
+              }}>
+                <Search size={24} />
               </div>
-            ))}
-
-            <div className="card" style={{
-              padding: '1.5rem',
-              backgroundColor: 'var(--c1-blue-soft)',
-              borderColor: 'var(--c1-blue-border)',
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'center',
-            }}>
-              <div style={{ fontSize: '0.85rem', fontWeight: 800, color: 'var(--c1-blue)', marginBottom: '0.5rem' }}>
-                THE OUTCOME
-              </div>
-              <h4 style={{ fontSize: '1.2rem', marginBottom: '0.5rem', color: 'var(--c1-blue)' }}>
-                Better-Informed Decisions & Stronger Programs
-              </h4>
-              <p style={{ fontSize: '0.875rem', color: 'var(--text-main)' }}>
-                This is not a rigid linear process; the cycle learns and adapts with real community feedback.
+              <h3 style={{ fontSize: '1.2rem', marginBottom: '0.5rem', color: 'var(--text-main)' }}>
+                Formative & Behavioral Research
+              </h3>
+              <p style={{ fontSize: '0.9rem' }}>
+                Understand audiences, determinants, barriers, facilitators, norms, journeys and information ecosystems.
               </p>
             </div>
-          </div>
 
-          {/* The Difference Callout */}
-          <div className="card" style={{ borderLeft: '4px solid var(--c2-teal)' }}>
-            <h4 style={{ fontSize: '1.25rem', marginBottom: '0.5rem', color: 'var(--c2-teal)' }}>
-              THE NEXA DIFFERENCE
-            </h4>
-            <p style={{ fontSize: '1rem', color: 'var(--text-main)' }}>
-              "We do not treat communication as the solution by default. We first examine the behavioral problem and the wider context, then determine where communication can make a meaningful contribution."
-            </p>
+            {/* Domain 2: SBCC Strategy */}
+            <div className="card" style={{ borderLeft: '4px solid var(--c2-teal)' }}>
+              <div style={{
+                width: '46px',
+                height: '46px',
+                borderRadius: 'var(--radius-md)',
+                backgroundColor: 'var(--c2-teal-soft)',
+                color: 'var(--c2-teal)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginBottom: '1.25rem',
+              }}>
+                <BrainCircuit size={24} />
+              </div>
+              <h3 style={{ fontSize: '1.2rem', marginBottom: '0.5rem', color: 'var(--text-main)' }}>
+                SBCC Strategy
+              </h3>
+              <p style={{ fontSize: '0.9rem' }}>
+                Translate evidence into behavioral objectives, audience segments, strategic approaches, channels and implementation plans.
+              </p>
+            </div>
+
+            {/* Domain 3: Message & Creative Development */}
+            <div className="card" style={{ borderLeft: '4px solid var(--c1-blue)' }}>
+              <div style={{
+                width: '46px',
+                height: '46px',
+                borderRadius: 'var(--radius-md)',
+                backgroundColor: 'var(--c1-blue-soft)',
+                color: 'var(--c1-blue)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginBottom: '1.25rem',
+              }}>
+                <PenTool size={24} />
+              </div>
+              <h3 style={{ fontSize: '1.2rem', marginBottom: '0.5rem', color: 'var(--text-main)' }}>
+                Message & Creative Development
+              </h3>
+              <p style={{ fontSize: '0.9rem' }}>
+                Turn strategy into message architecture, content concepts, briefs, materials and pretesting plans.
+              </p>
+            </div>
+
+            {/* Domain 4: Monitoring, Evaluation & Learning */}
+            <div className="card" style={{ borderLeft: '4px solid var(--c3-purple)' }}>
+              <div style={{
+                width: '46px',
+                height: '46px',
+                borderRadius: 'var(--radius-md)',
+                backgroundColor: 'var(--c3-purple-soft)',
+                color: 'var(--c3-purple)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginBottom: '1.25rem',
+              }}>
+                <BarChart3 size={24} />
+              </div>
+              <h3 style={{ fontSize: '1.2rem', marginBottom: '0.5rem', color: 'var(--text-main)' }}>
+                Monitoring, Evaluation & Learning
+              </h3>
+              <p style={{ fontSize: '0.9rem' }}>
+                Build indicators, learning questions, monitoring tools and evidence-to-action recommendations.
+              </p>
+            </div>
+
+            {/* Domain 5: Training & Capacity Building */}
+            <div className="card" style={{ borderLeft: '4px solid var(--c2-teal)' }}>
+              <div style={{
+                width: '46px',
+                height: '46px',
+                borderRadius: 'var(--radius-md)',
+                backgroundColor: 'var(--c2-teal-soft)',
+                color: 'var(--c2-teal)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginBottom: '1.25rem',
+              }}>
+                <Users size={24} />
+              </div>
+              <h3 style={{ fontSize: '1.2rem', marginBottom: '0.5rem', color: 'var(--text-main)' }}>
+                Training & Capacity Building
+              </h3>
+              <p style={{ fontSize: '0.9rem' }}>
+                Practical training, facilitation and technical support for teams implementing communication and behavior change work.
+              </p>
+            </div>
+
+            {/* Domain 6: Technical / Short-Term Support */}
+            <div className="card" style={{ borderLeft: '4px solid var(--c1-blue)' }}>
+              <div style={{
+                width: '46px',
+                height: '46px',
+                borderRadius: 'var(--radius-md)',
+                backgroundColor: 'var(--c1-blue-soft)',
+                color: 'var(--c1-blue)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginBottom: '1.25rem',
+              }}>
+                <Wrench size={24} />
+              </div>
+              <h3 style={{ fontSize: '1.2rem', marginBottom: '0.5rem', color: 'var(--text-main)' }}>
+                Technical / Short-Term Support
+              </h3>
+              <p style={{ fontSize: '0.9rem' }}>
+                Focused support for proposals, research tools, strategy reviews, content development and selected technical deliverables.
+              </p>
+            </div>
           </div>
         </div>
       </section>
 
       {/* =================================================================
-          FEATURED SERVICES & HEALTH AWARENESS MATERIALS
+          DELIVERABLES SHOWCASE (Prior Model Works & Materials Developed)
           ================================================================= */}
       <section className="section" style={{ backgroundColor: 'var(--bg-card)', borderTop: '1px solid var(--border-color)' }}>
         <div className="container">
@@ -322,15 +368,15 @@ export default async function HomePage() {
             <div>
               <span className="section-tag">Deliverables Showcase</span>
               <h2 className="section-title" style={{ marginBottom: '0.5rem' }}>
-                Health Awareness Materials & Packages
+                Prior Model Works & Developed Materials
               </h2>
               <p className="section-subtitle">
-                Available in PDFs, high-resolution PNG infographics, and campaign video suites.
+                Examples of communication packages, health awareness guidelines, PNG infographics, and campaign assets developed by our team.
               </p>
             </div>
 
             <Link href="/services" className="btn btn-outline">
-              <span>View All Offerings</span>
+              <span>View All Materials</span>
               <ArrowRight size={16} />
             </Link>
           </div>
@@ -339,7 +385,7 @@ export default async function HomePage() {
             {featuredServices.map((service) => (
               <div key={service.id} className="card" style={{ display: 'flex', flexDirection: 'column' }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
-                  <span className={`badge ${service.type === 'PDF' ? 'badge-blue' : service.type === 'VIDEO' ? 'badge-teal' : 'badge-neutral'}`}>
+                  <span className={`badge ${service.type === 'PDF' ? 'badge-orange' : service.type === 'VIDEO' ? 'badge-teal' : 'badge-neutral'}`}>
                     {service.type === 'PDF' && <FileText size={12} />}
                     {service.type === 'IMAGE' && <ImageIcon size={12} />}
                     {service.type === 'VIDEO' && <Video size={12} />}
@@ -356,7 +402,7 @@ export default async function HomePage() {
                 {service.features && (
                   <div style={{ marginBottom: '1.5rem', backgroundColor: 'var(--bg-card-subtle)', padding: '0.75rem 1rem', borderRadius: 'var(--radius-sm)' }}>
                     <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '0.35rem' }}>
-                      Included Assets
+                      Included Deliverables
                     </div>
                     <div style={{ fontSize: '0.85rem', color: 'var(--text-main)' }}>
                       {service.features.split(';').slice(0, 3).join(' • ')}
@@ -365,13 +411,20 @@ export default async function HomePage() {
                 )}
 
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 'auto', paddingTop: '1rem', borderTop: '1px solid var(--border-color)' }}>
-                  <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--c1-blue)' }}>
-                    {service.priceInfo || 'Available for Deployment'}
+                  <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                    Model Work Sample
                   </span>
-                  <Link href="/services#utilize" className="btn btn-primary btn-sm">
-                    <Mail size={14} />
-                    <span>Request / Order</span>
-                  </Link>
+                  {service.fileUrl && (
+                    <a
+                      href={service.fileUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="btn btn-outline btn-sm"
+                    >
+                      <Download size={14} />
+                      <span>View Sample</span>
+                    </a>
+                  )}
                 </div>
               </div>
             ))}
@@ -380,7 +433,7 @@ export default async function HomePage() {
       </section>
 
       {/* =================================================================
-          LATEST NEWS & INSIGHTS SECTION
+          LATEST NEWS & HEALTH INSIGHTS SECTION
           ================================================================= */}
       <section className="section">
         <div className="container">
@@ -414,53 +467,6 @@ export default async function HomePage() {
                 </div>
               </article>
             ))}
-          </div>
-        </div>
-      </section>
-
-      {/* =================================================================
-          SERVICE UTILIZATION EMAIL CTA BANNER
-          ================================================================= */}
-      <section className="section" style={{ backgroundColor: 'var(--c1-blue-soft)', borderTop: '1px solid var(--c1-blue-border)' }}>
-        <div className="container" style={{ textAlign: 'center' }}>
-          <div style={{ maxWidth: '800px', margin: '0 auto' }}>
-            <span className="section-tag" style={{ backgroundColor: 'var(--bg-card)' }}>
-              Dedicated Service Gateway
-            </span>
-            <h2 className="section-title" style={{ marginTop: '0.5rem' }}>
-              Ready to collaborate on Health Awareness & SBCC?
-            </h2>
-            <p style={{ fontSize: '1.15rem', color: 'var(--text-main)', marginBottom: '2rem' }}>
-              Whether you need customized health awareness packages (PDF handbooks, visual PNG infographics, or video spots) or comprehensive behavioral research, request your service directly via our dedicated dispatch email:
-            </p>
-
-            <div style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '0.75rem',
-              backgroundColor: 'var(--bg-card)',
-              border: '2px solid var(--c1-blue)',
-              padding: '1rem 1.75rem',
-              borderRadius: 'var(--radius-lg)',
-              marginBottom: '2rem',
-              boxShadow: 'var(--shadow-md)',
-            }}>
-              <Mail size={24} style={{ color: 'var(--c1-blue)' }} />
-              <span style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--c1-blue)', letterSpacing: '-0.01em' }}>
-                nexasolutionsethiopia@gmail.com
-              </span>
-            </div>
-
-            <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', flexWrap: 'wrap' }}>
-              <Link href="/services#utilize" className="btn btn-primary btn-lg">
-                <span>Open Service Request Portal</span>
-                <ArrowRight size={18} />
-              </Link>
-              <Link href="/contact" className="btn btn-outline btn-lg">
-                <span>General Office Inquiries</span>
-              </Link>
-            </div>
           </div>
         </div>
       </section>

@@ -43,16 +43,23 @@ export async function DELETE(
 
     const { id } = await params;
     try {
-      await prisma.serviceInquiry.delete({
+      const existing = await prisma.serviceInquiry.findUnique({
         where: { id },
       });
 
-      return NextResponse.json({ success: true });
-    } catch (dbErr) {
+      if (existing) {
+        await prisma.serviceInquiry.delete({
+          where: { id: existing.id },
+        });
+      }
+
+      return NextResponse.json({ success: true, deletedId: id });
+    } catch (dbErr: any) {
       console.warn('Failed to delete inquiry from DB:', dbErr);
-      return NextResponse.json({ error: 'Database is in read-only mode or record was not found.' }, { status: 400 });
+      return NextResponse.json({ error: dbErr?.message || 'Database error deleting inquiry.' }, { status: 400 });
     }
-  } catch (error) {
-    return NextResponse.json({ error: 'Failed to delete inquiry' }, { status: 500 });
+  } catch (error: any) {
+    console.error('Error deleting inquiry:', error);
+    return NextResponse.json({ error: error?.message || 'Failed to delete inquiry' }, { status: 500 });
   }
 }

@@ -38,30 +38,56 @@ export async function PUT(
     const data = await req.json();
 
     try {
-      const updated = await prisma.service.update({
-        where: { id },
-        data: {
-          title: data.title,
-          category: data.category,
-          type: data.type,
-          shortDesc: data.shortDesc,
-          description: data.description,
-          features: data.features,
-          fileUrl: data.fileUrl,
-          imageUrl: data.imageUrl,
-          priceInfo: data.priceInfo,
-          isFeatured: Boolean(data.isFeatured),
-        },
+      const existing = await prisma.service.findFirst({
+        where: { OR: [{ id }, { slug: id }] },
       });
 
+      let updated;
+      if (existing) {
+        updated = await prisma.service.update({
+          where: { id: existing.id },
+          data: {
+            title: data.title,
+            category: data.category,
+            type: data.type,
+            shortDesc: data.shortDesc,
+            description: data.description,
+            features: data.features || '',
+            fileUrl: data.fileUrl || null,
+            imageUrl: data.imageUrl || null,
+            isFeatured: Boolean(data.isFeatured),
+          },
+        });
+      } else {
+        const baseSlug = (data.title || 'service')
+          .toLowerCase()
+          .trim()
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/(^-|-$)+/g, '');
+        updated = await prisma.service.create({
+          data: {
+            title: data.title,
+            slug: `${baseSlug}-${Date.now().toString().slice(-4)}`,
+            category: data.category || 'Creative',
+            type: data.type || 'PDF',
+            shortDesc: data.shortDesc || '',
+            description: data.description || '',
+            features: data.features || '',
+            fileUrl: data.fileUrl || null,
+            imageUrl: data.imageUrl || null,
+            isFeatured: Boolean(data.isFeatured),
+          },
+        });
+      }
+
       return NextResponse.json({ success: true, service: updated });
-    } catch (dbErr) {
+    } catch (dbErr: any) {
       console.warn('Failed to update service in DB:', dbErr);
-      return NextResponse.json({ error: 'Database is in read-only mode or record was not found.' }, { status: 400 });
+      return NextResponse.json({ error: dbErr?.message || 'Database error updating service.' }, { status: 400 });
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error updating service:', error);
-    return NextResponse.json({ error: 'Failed to update service' }, { status: 500 });
+    return NextResponse.json({ error: error?.message || 'Failed to update service' }, { status: 500 });
   }
 }
 
@@ -77,17 +103,23 @@ export async function DELETE(
 
     const { id } = await params;
     try {
-      await prisma.service.delete({
-        where: { id },
+      const existing = await prisma.service.findFirst({
+        where: { OR: [{ id }, { slug: id }] },
       });
 
-      return NextResponse.json({ success: true });
-    } catch (dbErr) {
+      if (existing) {
+        await prisma.service.delete({
+          where: { id: existing.id },
+        });
+      }
+
+      return NextResponse.json({ success: true, deletedId: id });
+    } catch (dbErr: any) {
       console.warn('Failed to delete service from DB:', dbErr);
-      return NextResponse.json({ error: 'Database is in read-only mode or record was not found.' }, { status: 400 });
+      return NextResponse.json({ error: dbErr?.message || 'Database error deleting service.' }, { status: 400 });
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error deleting service:', error);
-    return NextResponse.json({ error: 'Failed to delete service' }, { status: 500 });
+    return NextResponse.json({ error: error?.message || 'Failed to delete service' }, { status: 500 });
   }
 }

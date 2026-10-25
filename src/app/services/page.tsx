@@ -4,24 +4,22 @@ import { prisma } from '@/lib/prisma';
 import { ServicesClient } from './ServicesClient';
 import {
   FileText,
-  Image as ImageIcon,
-  Video,
-  Layers,
   Sparkles,
-  CheckCircle,
-  HelpCircle,
   ArrowRight,
-  BookOpen,
+  Search,
+  BrainCircuit,
+  PenTool,
+  BarChart3,
+  Users,
 } from 'lucide-react';
+import { FALLBACK_SERVICES, ServiceItem } from '@/lib/fallbackData';
 
 export const revalidate = 0; // Ensure live database items appear immediately
 
 export const metadata = {
-  title: 'Services & Health Awareness Materials | Nexa Solutions Ethiopia',
-  description: 'Explore our health awareness packages (PDF handbooks, PNG infographics, videos) and SBCC consulting services. Order via nexasolutionsethiopia@gmail.com.',
+  title: 'Services & Deliverables | Nexa Solutions Ethiopia',
+  description: 'Explore what clients receive across Research, Strategy, Creative, M&E, and Training, and browse model health awareness materials.',
 };
-
-import { FALLBACK_SERVICES, ServiceItem } from '@/lib/fallbackData';
 
 export default async function ServicesPage() {
   let services: ServiceItem[] = [];
@@ -46,27 +44,25 @@ export default async function ServicesPage() {
             <span>03 | WHAT WE DO & WHAT WE PROVIDE</span>
           </div>
           <h1 className="hero-title" style={{ fontSize: '3rem' }}>
-            Health Awareness Materials &{' '}
-            <span style={{ color: 'var(--c1-blue)' }}>SBCC Consulting.</span>
+            Services & Health Awareness{' '}
+            <span style={{ color: 'var(--c1-blue)' }}>Deliverables.</span>
           </h1>
           <p className="hero-subtitle">
-            We produce customized health awareness assets (PDF handbooks, visual PNG infographics, video spots) and provide end-to-end behavioral consulting for Ethiopian health programs.
+            We provide evidence-informed behavioral strategies and develop customized health awareness assets (guidelines, PNG infographics, posters, campaign videos).
           </p>
         </div>
       </section>
 
-      {/* Main Interactive Catalog & Utilization Section */}
-      <section className="section" style={{ backgroundColor: 'var(--bg-main)' }}>
+      {/* Main Content Section */}
+      <section className="section" style={{ backgroundColor: 'var(--bg-main)', paddingTop: '2rem' }}>
         <div className="container">
-          <ServicesClient initialServices={services} />
-
-          {/* Section 04: What a Client Actually Receives (Table from Page 5 of PDF) */}
-          <div style={{ marginTop: '5rem', marginBottom: '5rem' }}>
-            <div className="section-header">
+          {/* Section: What a Client Actually Receives (Brought ABOVE Deliverables) */}
+          <div style={{ marginBottom: '4.5rem' }}>
+            <div className="section-header" style={{ marginBottom: '2.5rem' }}>
               <span className="section-tag">Tangible Deliverables</span>
-              <h2 className="section-title">04 | What a Client Actually Receives</h2>
+              <h2 className="section-title">What a Client Actually Receives</h2>
               <p className="section-subtitle">
-                The portfolio should make the deliverable tangible. Below is the kind of output Nexa Solutions develops or supports, depending on the assignment.
+                Below is the kind of output Nexa Solutions develops or supports, depending on the assignment.
               </p>
             </div>
 
@@ -75,7 +71,7 @@ export default async function ServicesPage() {
                 <thead>
                   <tr>
                     <th style={{ width: '22%' }}>Core Domain</th>
-                    <th>Tangible Deliverables (PDFs, Assets & Strategy)</th>
+                    <th>Tangible Deliverables (Guidelines, Assets & Strategies)</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -94,17 +90,17 @@ export default async function ServicesPage() {
                   <tr>
                     <td style={{ fontWeight: 700, color: 'var(--c1-blue)' }}>Creative</td>
                     <td>
-                      Message matrix • message concepts • content briefs • campaign concepts • communication materials (bilingual PDFs, PNG infographics, videos) • pretesting plan • revision recommendations
+                      Message matrix • message concepts • content briefs • campaign concepts • communication materials (bilingual guidelines, PNG infographics, posters, videos) • pretesting plan • revision recommendations
                     </td>
                   </tr>
                   <tr>
-                    <td style={{ fontWeight: 700, color: 'var(--c2-teal)' }}>M&E / MEL</td>
+                    <td style={{ fontWeight: 700, color: 'var(--c3-purple)' }}>M&E / MEL</td>
                     <td>
                       Results framework • indicator matrix • monitoring tools • learning questions • reporting structure • data interpretation • adaptation recommendations
                     </td>
                   </tr>
                   <tr>
-                    <td style={{ fontWeight: 700, color: 'var(--c1-blue)' }}>Training</td>
+                    <td style={{ fontWeight: 700, color: 'var(--c2-teal)' }}>Training</td>
                     <td>
                       Training needs assessment • facilitator guide • participant materials • session plans • practical exercises • post-training assessment
                     </td>
@@ -112,53 +108,22 @@ export default async function ServicesPage() {
                 </tbody>
               </table>
             </div>
-            <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.75rem', fontStyle: 'italic' }}>
-              Illustrative outputs shown in this portfolio are examples of how we structure consulting work. Final deliverables are tailored to the client's scope, evidence and budget.
+            <p style={{ fontSize: '0.825rem', color: 'var(--text-muted)', marginTop: '0.85rem', fontStyle: 'italic' }}>
+              Illustrative outputs shown in this portfolio are examples of how we structure strategy and creative work. Final deliverables are tailored to the client's scope, evidence and budget.
             </p>
           </div>
 
-          {/* Section 05: Example Matrix (Page 6 of PDF) */}
-          <div className="card" style={{ padding: '2.5rem', backgroundColor: 'var(--bg-card)', border: '1px solid var(--border-color)' }}>
-            <div className="badge badge-teal" style={{ marginBottom: '1rem' }}>05 | EXAMPLE OUTPUTS & MATRIX</div>
-            <h3 style={{ fontSize: '1.5rem', marginBottom: '0.75rem' }}>
-              Behavioral Barrier & Message Job Matrix
-            </h3>
-            <p style={{ fontSize: '0.925rem', marginBottom: '1.5rem', color: 'var(--text-muted)' }}>
-              Instead of filling the portfolio with generic stock images, we use simple visual artifacts to demonstrate how we think.
-            </p>
-
-            <div className="table-container">
-              <table className="admin-table">
-                <thead>
-                  <tr>
-                    <th>Audience</th>
-                    <th>Behavioral Barrier</th>
-                    <th>Message Job</th>
-                    <th>Channel Delivery</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td style={{ fontWeight: 600 }}>Young Adults</td>
-                    <td>Low perceived relevance</td>
-                    <td>Make benefits personally meaningful</td>
-                    <td>Peer + digital (PNG / Social)</td>
-                  </tr>
-                  <tr>
-                    <td style={{ fontWeight: 600 }}>Partners / Families</td>
-                    <td>Norm uncertainty</td>
-                    <td>Build supportive expectations</td>
-                    <td>Community + interpersonal</td>
-                  </tr>
-                  <tr>
-                    <td style={{ fontWeight: 600 }}>Frontline Providers</td>
-                    <td>Time & communication constraints</td>
-                    <td>Enable concise, respectful counseling</td>
-                    <td>Training + PDF Job Aids</td>
-                  </tr>
-                </tbody>
-              </table>
+          {/* Section: Deliverables Showcase (Categorized using Page 5) */}
+          <div style={{ marginBottom: '2rem' }}>
+            <div className="section-header" style={{ marginBottom: '2.5rem' }}>
+              <span className="section-tag">Model Materials</span>
+              <h2 className="section-title">Prior Model Works & Materials Developed</h2>
+              <p className="section-subtitle">
+                Classified by core consulting domains from Page 5 of our portfolio. Explore sample guidelines, PNG visual assets, and intervention packages.
+              </p>
             </div>
+
+            <ServicesClient initialServices={services} />
           </div>
         </div>
       </section>

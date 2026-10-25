@@ -4,6 +4,9 @@ import { getCurrentAdmin } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { DashboardClient } from './DashboardClient';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export const metadata = {
   title: 'Admin Dashboard | Nexa Solutions',
   description: 'Administrative portal for managing services, news, and service utilization inquiries.',
@@ -19,6 +22,7 @@ export default async function AdminDashboardPage() {
   let services: any[] = [];
   let newsList: any[] = [];
   let inquiries: any[] = [];
+  let isDbOk = false;
 
   try {
     const results = await Promise.all([
@@ -35,17 +39,14 @@ export default async function AdminDashboardPage() {
     services = results[0];
     newsList = results[1];
     inquiries = results[2];
+    isDbOk = true;
   } catch (err) {
     console.warn('[AdminDashboardPage] Database queries failed, loading fallback data:', err);
   }
 
-  if (!services || services.length === 0) {
-    const { FALLBACK_SERVICES } = await import('@/lib/fallbackData');
+  if (!isDbOk) {
+    const { FALLBACK_SERVICES, FALLBACK_NEWS } = await import('@/lib/fallbackData');
     services = FALLBACK_SERVICES as any[];
-  }
-
-  if (!newsList || newsList.length === 0) {
-    const { FALLBACK_NEWS } = await import('@/lib/fallbackData');
     newsList = FALLBACK_NEWS as any[];
   }
 

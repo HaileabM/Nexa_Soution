@@ -61,7 +61,7 @@ export async function POST(req: NextRequest) {
           features: features || '',
           fileUrl: fileUrl || null,
           imageUrl: imageUrl || 'https://images.unsplash.com/photo-1576091160550-2173dba999ef?auto=format&fit=crop&w=800&q=80',
-          priceInfo: priceInfo || 'Custom Consultation / Inquire via Email',
+          priceInfo: priceInfo || null,
           isFeatured: Boolean(isFeatured),
         },
       });

@@ -29,6 +29,8 @@ import {
   Sparkles,
   Phone,
   Eye,
+  Upload,
+  FileUp,
 } from 'lucide-react';
 
 interface ServiceItem {
@@ -42,7 +44,7 @@ interface ServiceItem {
   features: string;
   fileUrl: string | null;
   imageUrl: string | null;
-  priceInfo: string | null;
+  priceInfo?: string | null;
   isFeatured: boolean;
   createdAt: string;
 }
@@ -98,14 +100,13 @@ export function DashboardClient({
   const [editingService, setEditingService] = useState<ServiceItem | null>(null);
   const [serviceForm, setServiceForm] = useState({
     title: '',
-    category: 'Consulting & Strategy',
-    type: 'PACKAGE',
+    category: 'Creative',
+    type: 'PDF',
     shortDesc: '',
     description: '',
     features: '',
     fileUrl: '',
     imageUrl: '',
-    priceInfo: 'Custom Consultation / Inquire via Email',
     isFeatured: false,
   });
 
@@ -127,6 +128,14 @@ export function DashboardClient({
   const [inquiries, setInquiries] = useState<InquiryItem[]>(initialInquiries);
   const [selectedInquiry, setSelectedInquiry] = useState<InquiryItem | null>(null);
 
+  // Deletion Confirmation Modal State
+  const [itemToDelete, setItemToDelete] = useState<{
+    type: 'service' | 'news' | 'inquiry';
+    id: string;
+    title: string;
+  } | null>(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+
   // Password Change State
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
@@ -136,11 +145,42 @@ export function DashboardClient({
 
   // Global operation loading & feedback
   const [actionLoading, setActionLoading] = useState(false);
+  const [uploadingField, setUploadingField] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<string | null>(null);
 
   const showFeedback = (msg: string) => {
     setFeedback(msg);
     setTimeout(() => setFeedback(null), 3500);
+  };
+
+  // Direct File Upload Handler
+  const handleFileUpload = async (file: File, targetField: 'fileUrl' | 'imageUrl' | 'newsImageUrl') => {
+    setUploadingField(targetField);
+    try {
+      const fd = new FormData();
+      fd.append('file', file);
+      const res = await fetch('/api/upload', {
+        method: 'POST',
+        body: fd,
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Upload failed');
+
+      if (targetField === 'fileUrl') {
+        setServiceForm((prev) => ({ ...prev, fileUrl: data.url }));
+        showFeedback(`Deliverable file uploaded: ${data.filename}`);
+      } else if (targetField === 'imageUrl') {
+        setServiceForm((prev) => ({ ...prev, imageUrl: data.url }));
+        showFeedback(`Thumbnail uploaded: ${data.filename}`);
+      } else if (targetField === 'newsImageUrl') {
+        setNewsForm((prev) => ({ ...prev, imageUrl: data.url }));
+        showFeedback(`Article banner uploaded: ${data.filename}`);
+      }
+    } catch (err: any) {
+      alert(err.message || 'File upload failed');
+    } finally {
+      setUploadingField(null);
+    }
   };
 
   // Logout Handler
@@ -157,14 +197,13 @@ export function DashboardClient({
     setEditingService(null);
     setServiceForm({
       title: '',
-      category: 'Health Awareness & Behavior Change',
+      category: 'Creative',
       type: 'PDF',
       shortDesc: '',
       description: '',
       features: '',
       fileUrl: '',
       imageUrl: '',
-      priceInfo: 'Custom Project / Grant Scope',
       isFeatured: false,
     });
     setServiceModalOpen(true);
@@ -174,14 +213,13 @@ export function DashboardClient({
     setEditingService(item);
     setServiceForm({
       title: item.title,
-      category: item.category,
+      category: item.category || 'Creative',
       type: item.type,
       shortDesc: item.shortDesc,
       description: item.description,
       features: item.features,
       fileUrl: item.fileUrl || '',
       imageUrl: item.imageUrl || '',
-      priceInfo: item.priceInfo || '',
       isFeatured: item.isFeatured,
     });
     setServiceModalOpen(true);
@@ -205,32 +243,26 @@ export function DashboardClient({
       if (!res.ok) throw new Error(data.error || 'Failed to save service');
 
       if (editingService) {
-        setServices(services.map((s) => (s.id === editingService.id ? data.service : s)));
-        showFeedback('Service updated successfully');
+        setServices((prev) =>
+          prev.map((s) => (s.id === editingService.id || s.slug === editingService.id ? data.service : s))
+        );
+        showFeedback('Deliverable updated successfully');
       } else {
-        setServices([data.service, ...services]);
-        showFeedback('New service / material published');
+        setServices((prev) => [data.service, ...prev]);
+        showFeedback('New deliverable / material published');
       }
 
       setServiceModalOpen(false);
+      router.refresh();
     } catch (err: any) {
-      alert(err.message);
+      showFeedback(`Error: ${err.message || 'Failed to save deliverable'}`);
     } finally {
       setActionLoading(false);
     }
   };
 
-  const handleDeleteService = async (id: string, title: string) => {
-    if (!confirm(`Are you sure you want to delete "${title}"?`)) return;
-
-    try {
-      const res = await fetch(`/api/services/${id}`, { method: 'DELETE' });
-      if (!res.ok) throw new Error('Failed to delete service');
-      setServices(services.filter((s) => s.id !== id));
-      showFeedback('Service deleted');
-    } catch (err: any) {
-      alert(err.message);
-    }
+  const handleDeleteService = (id: string, title: string) => {
+    setItemToDelete({ type: 'service', id, title });
   };
 
   // -------------------------------------------------------------
@@ -282,31 +314,67 @@ export function DashboardClient({
       if (!res.ok) throw new Error(data.error || 'Failed to save news article');
 
       if (editingNews) {
-        setNewsList(newsList.map((n) => (n.id === editingNews.id ? data.news : n)));
-        showFeedback('News article updated');
+        setNewsList((prev) =>
+          prev.map((n) => (n.id === editingNews.id || n.slug === editingNews.id ? data.news : n))
+        );
+        showFeedback('News article updated successfully');
       } else {
-        setNewsList([data.news, ...newsList]);
+        setNewsList((prev) => [data.news, ...prev]);
         showFeedback('New article published');
       }
 
       setNewsModalOpen(false);
+      router.refresh();
     } catch (err: any) {
-      alert(err.message);
+      showFeedback(`Error: ${err.message || 'Failed to save news article'}`);
     } finally {
       setActionLoading(false);
     }
   };
 
-  const handleDeleteNews = async (id: string, title: string) => {
-    if (!confirm(`Are you sure you want to delete news article "${title}"?`)) return;
+  const handleDeleteNews = (id: string, title: string) => {
+    setItemToDelete({ type: 'news', id, title });
+  };
+
+  // -------------------------------------------------------------
+  // DELETION CONFIRMATION HANDLER
+  // -------------------------------------------------------------
+  const handleConfirmDelete = async () => {
+    if (!itemToDelete) return;
+    setDeleteLoading(true);
 
     try {
-      const res = await fetch(`/api/news/${id}`, { method: 'DELETE' });
-      if (!res.ok) throw new Error('Failed to delete news article');
-      setNewsList(newsList.filter((n) => n.id !== id));
-      showFeedback('News article deleted');
+      const endpoint =
+        itemToDelete.type === 'service'
+          ? `/api/services/${itemToDelete.id}`
+          : itemToDelete.type === 'news'
+          ? `/api/news/${itemToDelete.id}`
+          : `/api/inquiries/${itemToDelete.id}`;
+
+      const res = await fetch(endpoint, { method: 'DELETE' });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || `Failed to delete ${itemToDelete.type}`);
+
+      if (itemToDelete.type === 'service') {
+        setServices((prev) => prev.filter((s) => s.id !== itemToDelete.id && s.slug !== itemToDelete.id));
+        showFeedback(`Deliverable "${itemToDelete.title}" deleted.`);
+      } else if (itemToDelete.type === 'news') {
+        setNewsList((prev) => prev.filter((n) => n.id !== itemToDelete.id && n.slug !== itemToDelete.id));
+        showFeedback(`News article "${itemToDelete.title}" deleted.`);
+      } else if (itemToDelete.type === 'inquiry') {
+        setInquiries((prev) => prev.filter((i) => i.id !== itemToDelete.id));
+        showFeedback(`Service request from "${itemToDelete.title}" deleted.`);
+        if (selectedInquiry?.id === itemToDelete.id) {
+          setSelectedInquiry(null);
+        }
+      }
+
+      setItemToDelete(null);
+      router.refresh();
     } catch (err: any) {
-      alert(err.message);
+      showFeedback(`Error: ${err.message || 'Could not delete item'}`);
+    } finally {
+      setDeleteLoading(false);
     }
   };
 
@@ -321,23 +389,25 @@ export function DashboardClient({
         body: JSON.stringify({ status: newStatus }),
       });
 
-      if (!res.ok) throw new Error('Failed to update status');
-      setInquiries(inquiries.map((inq) => (inq.id === id ? { ...inq, status: newStatus } : inq)));
-      showFeedback(`Inquiry status updated to ${newStatus}`);
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to update status');
+
+      setInquiries(inquiries.map((inq) => (inq.id === id ? data.inquiry : inq)));
+      showFeedback(`Status set to ${newStatus}`);
     } catch (err: any) {
       alert(err.message);
     }
   };
 
   // -------------------------------------------------------------
-  // PASSWORD CHANGE
+  // PASSWORD MANAGEMENT
   // -------------------------------------------------------------
   const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
     setPasswordStatus(null);
 
     if (newPassword !== confirmPassword) {
-      setPasswordStatus({ type: 'error', message: 'New passwords do not match' });
+      setPasswordStatus({ type: 'error', message: 'New password and confirmation do not match' });
       return;
     }
 
@@ -374,30 +444,22 @@ export function DashboardClient({
       {/* Top Admin Header */}
       <header className="admin-header">
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-          <div style={{
-            width: '38px',
-            height: '38px',
-            borderRadius: '10px',
-            backgroundColor: 'var(--c1-blue-soft)',
-            color: 'var(--c1-blue)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}>
-            <ShieldCheck size={22} />
-          </div>
+          <img
+            src="/nexa-logo-transparent.png"
+            alt="Nexa Logo"
+            style={{ height: '36px', width: 'auto' }}
+          />
           <div>
             <div style={{ fontWeight: 800, fontSize: '1.15rem' }}>
-              Nexa <span style={{ color: 'var(--c1-blue)' }}>Admin Dashboard</span>
+              <span style={{ color: 'var(--c1-blue)' }}>Nexa</span> <span style={{ color: 'var(--c2-teal)' }}>Admin Portal</span>
             </div>
             <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-              Logged in as <strong style={{ color: 'var(--c2-teal)' }}>{adminUser.username}</strong> ({adminUser.name})
+              Logged in as <strong style={{ color: 'var(--c1-blue)' }}>{adminUser.username}</strong> ({adminUser.name})
             </div>
           </div>
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-          {/* Public Website Preview Link */}
           <Link
             href="/"
             target="_blank"
@@ -408,12 +470,10 @@ export function DashboardClient({
             <ExternalLink size={14} />
           </Link>
 
-          {/* Theme Switch */}
           <button onClick={toggleTheme} className="theme-toggle-btn" aria-label="Toggle theme">
             {theme === 'light' ? <Moon size={18} /> : <Sun size={18} />}
           </button>
 
-          {/* Logout Button */}
           <button
             onClick={handleLogout}
             className="btn btn-outline btn-sm"
@@ -454,7 +514,7 @@ export function DashboardClient({
           <div className="card" style={{ padding: '1.25rem' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
               <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>
-                Active Services
+                Active Deliverables
               </span>
               <Layers size={18} style={{ color: 'var(--c1-blue)' }} />
             </div>
@@ -480,9 +540,9 @@ export function DashboardClient({
               <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>
                 Service Requests
               </span>
-              <Inbox size={18} style={{ color: 'var(--c1-blue)' }} />
+              <Inbox size={18} style={{ color: 'var(--c3-purple)' }} />
             </div>
-            <div style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--c1-blue)' }}>
+            <div style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--c3-purple)' }}>
               {inquiries.length}
             </div>
           </div>
@@ -490,11 +550,11 @@ export function DashboardClient({
           <div className="card" style={{ padding: '1.25rem' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
               <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>
-                Official Service Email
+                Dispatch Channel
               </span>
               <Mail size={18} style={{ color: 'var(--c2-teal)' }} />
             </div>
-            <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-main)', wordBreak: 'break-all' }}>
+            <div style={{ fontSize: '0.825rem', fontWeight: 700, color: 'var(--text-main)', wordBreak: 'break-all' }}>
               nexasolutionsethiopia@gmail.com
             </div>
           </div>
@@ -507,7 +567,7 @@ export function DashboardClient({
             className={`admin-tab ${activeTab === 'services' ? 'active' : ''}`}
           >
             <Layers size={18} />
-            <span>Manage Services & Materials ({services.length})</span>
+            <span>Manage Deliverables & Materials ({services.length})</span>
           </button>
 
           <button
@@ -523,7 +583,7 @@ export function DashboardClient({
             className={`admin-tab ${activeTab === 'inquiries' ? 'active' : ''}`}
           >
             <Inbox size={18} />
-            <span>Service Requests / Email Orders ({inquiries.length})</span>
+            <span>Service Requests ({inquiries.length})</span>
           </button>
 
           <button
@@ -542,15 +602,15 @@ export function DashboardClient({
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
               <div>
-                <h2 style={{ fontSize: '1.5rem' }}>Services & Health Awareness Materials</h2>
+                <h2 style={{ fontSize: '1.5rem' }}>Deliverables & Health Materials</h2>
                 <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>
-                  Manage public consulting packages, health awareness PDFs, PNG posters, and campaign videos.
+                  Manage prior model works, guidelines, PNG infographics, posters, and campaign videos.
                 </p>
               </div>
 
               <button onClick={openCreateServiceModal} className="btn btn-primary">
                 <Plus size={16} />
-                <span>Post New Service / Material</span>
+                <span>Upload New Deliverable</span>
               </button>
             </div>
 
@@ -558,9 +618,9 @@ export function DashboardClient({
               <table className="admin-table">
                 <thead>
                   <tr>
-                    <th>Title & Category</th>
+                    <th>Title & Domain</th>
                     <th>Type</th>
-                    <th>Price / Package Info</th>
+                    <th>Sample File</th>
                     <th>Featured</th>
                     <th>Date Added</th>
                     <th style={{ textAlign: 'right' }}>Actions</th>
@@ -574,12 +634,24 @@ export function DashboardClient({
                         <div style={{ fontSize: '0.8rem', color: 'var(--c2-teal)' }}>{item.category}</div>
                       </td>
                       <td>
-                        <span className={`badge ${item.type === 'PDF' ? 'badge-blue' : item.type === 'VIDEO' ? 'badge-teal' : 'badge-neutral'}`}>
+                        <span className={`badge ${item.type === 'PDF' ? 'badge-orange' : item.type === 'VIDEO' ? 'badge-teal' : 'badge-neutral'}`}>
                           {item.type}
                         </span>
                       </td>
                       <td style={{ fontSize: '0.85rem' }}>
-                        {item.priceInfo || 'Direct Inquiry'}
+                        {item.fileUrl ? (
+                          <a
+                            href={item.fileUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{ color: 'var(--c1-blue)', display: 'inline-flex', alignItems: 'center', gap: '0.25rem', fontWeight: 600 }}
+                          >
+                            <span>Preview</span>
+                            <ExternalLink size={12} />
+                          </a>
+                        ) : (
+                          <span style={{ color: 'var(--text-muted)' }}>None</span>
+                        )}
                       </td>
                       <td>
                         {item.isFeatured ? (
@@ -700,14 +772,14 @@ export function DashboardClient({
         )}
 
         {/* =================================================================
-            TAB 3: SERVICE INQUIRIES & ORDERS (From nexasolutionsethiopia@gmail.com portal)
+            TAB 3: SERVICE REQUESTS
             ================================================================= */}
         {activeTab === 'inquiries' && (
           <div>
             <div style={{ marginBottom: '1.5rem' }}>
-              <h2 style={{ fontSize: '1.5rem' }}>Incoming Service Requests & Material Orders</h2>
+              <h2 style={{ fontSize: '1.5rem' }}>Incoming Service Requests</h2>
               <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>
-                These are requests generated by users to utilize your services via <strong>nexasolutionsethiopia@gmail.com</strong>.
+                These are requests generated from the Service Utilization Form and sent to <strong>nexasolutionsethiopia@gmail.com</strong>.
               </p>
             </div>
 
@@ -721,7 +793,7 @@ export function DashboardClient({
                   <thead>
                     <tr>
                       <th>Client & Organization</th>
-                      <th>Requested Service</th>
+                      <th>Requested Service / Domain</th>
                       <th>Timeline</th>
                       <th>Status</th>
                       <th>Received</th>
@@ -767,13 +839,24 @@ export function DashboardClient({
                           {new Date(inq.createdAt).toLocaleDateString()}
                         </td>
                         <td style={{ textAlign: 'right' }}>
-                          <button
-                            onClick={() => setSelectedInquiry(inq)}
-                            className="btn btn-outline btn-sm"
-                          >
-                            <Eye size={14} />
-                            <span>View Scope</span>
-                          </button>
+                          <div style={{ display: 'inline-flex', gap: '0.5rem' }}>
+                            <button
+                              onClick={() => setSelectedInquiry(inq)}
+                              className="btn btn-outline btn-sm"
+                              title="View Scope"
+                            >
+                              <Eye size={14} />
+                              <span>View</span>
+                            </button>
+                            <button
+                              onClick={() => setItemToDelete({ type: 'inquiry', id: inq.id, title: inq.name })}
+                              className="btn btn-outline btn-sm"
+                              style={{ color: '#ef4444', borderColor: 'rgba(239, 68, 68, 0.3)' }}
+                              title="Delete Request"
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))}
@@ -868,7 +951,7 @@ export function DashboardClient({
       </main>
 
       {/* =================================================================
-          MODAL: ADD / EDIT SERVICE
+          MODAL: ADD / EDIT DELIVERABLE (With Direct File Upload & No Price)
           ================================================================= */}
       {serviceModalOpen && (
         <div className="modal-overlay" onClick={() => setServiceModalOpen(false)}>
@@ -878,7 +961,7 @@ export function DashboardClient({
             </button>
 
             <h3 style={{ fontSize: '1.5rem', marginBottom: '1.5rem' }}>
-              {editingService ? 'Edit Service / Material' : 'Post New Service or Health Material'}
+              {editingService ? 'Edit Deliverable' : 'Post New Deliverable / Model Material'}
             </h3>
 
             <form onSubmit={handleSaveService}>
@@ -888,7 +971,7 @@ export function DashboardClient({
                   type="text"
                   required
                   className="form-input"
-                  placeholder="e.g. Maternal Care Behavioral Handbook"
+                  placeholder="e.g. Health Awareness Guidelines & PNG Infographics Pack"
                   value={serviceForm.title}
                   onChange={(e) => setServiceForm({ ...serviceForm, title: e.target.value })}
                 />
@@ -896,19 +979,22 @@ export function DashboardClient({
 
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
                 <div className="form-group">
-                  <label className="form-label">Category</label>
-                  <input
-                    type="text"
-                    required
-                    className="form-input"
-                    placeholder="e.g. Maternal Health / Youth / Research"
+                  <label className="form-label">Core Domain (Page 5 Classification) *</label>
+                  <select
+                    className="form-select"
                     value={serviceForm.category}
                     onChange={(e) => setServiceForm({ ...serviceForm, category: e.target.value })}
-                  />
+                  >
+                    <option value="Research">Research (Protocols, FGD Guides, Insight Reports)</option>
+                    <option value="Strategy">Strategy (Situation Analysis, Roadmaps, Objectives)</option>
+                    <option value="Creative">Creative (Guidelines, PNG Posters, Videos)</option>
+                    <option value="M&E">M&E / MEL (Frameworks, Indicator Matrix)</option>
+                    <option value="Training">Training (Facilitator Guides, Coaching Aids)</option>
+                  </select>
                 </div>
 
                 <div className="form-group">
-                  <label className="form-label">Asset Type *</label>
+                  <label className="form-label">Asset Format *</label>
                   <select
                     className="form-select"
                     value={serviceForm.type}
@@ -918,7 +1004,8 @@ export function DashboardClient({
                     <option value="IMAGE">PNG Poster / Infographics</option>
                     <option value="VIDEO">Video Series / Campaign</option>
                     <option value="PACKAGE">Full Awareness Package</option>
-                    <option value="CONSULTING">Consulting & Research</option>
+                    <option value="RESEARCH">Research Protocol</option>
+                    <option value="STRATEGY">Strategy Roadmap</option>
                   </select>
                 </div>
               </div>
@@ -952,60 +1039,146 @@ export function DashboardClient({
                 <input
                   type="text"
                   className="form-input"
-                  placeholder="e.g. Protocol; PDF Handbook; PNG Infographics; Video Spots"
+                  placeholder="e.g. Health guidelines; PNG infographics; Campaign video brief"
                   value={serviceForm.features}
                   onChange={(e) => setServiceForm({ ...serviceForm, features: e.target.value })}
                 />
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
-                <div className="form-group">
-                  <label className="form-label">Sample File URL (PDF/PNG/Video)</label>
+              {/* DIRECT FILE UPLOAD FOR SAMPLE DELIVERABLE */}
+              <div style={{
+                backgroundColor: 'var(--bg-card-subtle)',
+                border: '1px solid var(--border-color)',
+                borderRadius: 'var(--radius-md)',
+                padding: '1.25rem',
+                marginBottom: '1.25rem',
+              }}>
+                <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.5rem' }}>
+                  <FileUp size={16} style={{ color: 'var(--c1-blue)' }} />
+                  <span>Upload Sample Deliverable File (PDF / PNG / Video)</span>
+                </label>
+                <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '0.75rem' }}>
+                  Directly upload files from your device instead of entering links:
+                </p>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+                  <label className="btn btn-outline btn-sm" style={{ cursor: 'pointer', backgroundColor: 'var(--bg-card)' }}>
+                    <Upload size={14} />
+                    <span>{uploadingField === 'fileUrl' ? 'Uploading File...' : 'Choose File to Upload'}</span>
+                    <input
+                      type="file"
+                      accept=".pdf,.png,.jpg,.jpeg,.mp4,.webp"
+                      style={{ display: 'none' }}
+                      disabled={uploadingField === 'fileUrl'}
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) handleFileUpload(file, 'fileUrl');
+                      }}
+                    />
+                  </label>
+
+                  {serviceForm.fileUrl && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem', color: 'var(--c1-blue)', fontWeight: 600 }}>
+                      <CheckCircle size={15} />
+                      <span style={{ maxWidth: '250px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {serviceForm.fileUrl}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setServiceForm({ ...serviceForm, fileUrl: '' })}
+                        style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', fontSize: '0.75rem' }}
+                      >
+                        (Remove)
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                <div style={{ marginTop: '0.75rem' }}>
                   <input
                     type="text"
                     className="form-input"
-                    placeholder="/materials/sample-maternal-health-guide.pdf"
+                    style={{ fontSize: '0.8rem', padding: '0.5rem 0.75rem' }}
+                    placeholder="Or enter external link/URL if hosted elsewhere (e.g. YouTube, Drive)"
                     value={serviceForm.fileUrl}
                     onChange={(e) => setServiceForm({ ...serviceForm, fileUrl: e.target.value })}
                   />
                 </div>
+              </div>
 
-                <div className="form-group">
-                  <label className="form-label">Thumbnail Image URL</label>
+              {/* DIRECT FILE UPLOAD FOR THUMBNAIL IMAGE */}
+              <div style={{
+                backgroundColor: 'var(--bg-card-subtle)',
+                border: '1px solid var(--border-color)',
+                borderRadius: 'var(--radius-md)',
+                padding: '1.25rem',
+                marginBottom: '1.25rem',
+              }}>
+                <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.5rem' }}>
+                  <ImageIcon size={16} style={{ color: 'var(--c2-teal)' }} />
+                  <span>Upload Thumbnail Image</span>
+                </label>
+                <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '0.75rem' }}>
+                  Upload image preview directly from your device:
+                </p>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+                  <label className="btn btn-outline btn-sm" style={{ cursor: 'pointer', backgroundColor: 'var(--bg-card)' }}>
+                    <Upload size={14} />
+                    <span>{uploadingField === 'imageUrl' ? 'Uploading Image...' : 'Choose Image to Upload'}</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      style={{ display: 'none' }}
+                      disabled={uploadingField === 'imageUrl'}
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) handleFileUpload(file, 'imageUrl');
+                      }}
+                    />
+                  </label>
+
+                  {serviceForm.imageUrl && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem', color: 'var(--c2-teal)', fontWeight: 600 }}>
+                      <CheckCircle size={15} />
+                      <span style={{ maxWidth: '250px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {serviceForm.imageUrl}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setServiceForm({ ...serviceForm, imageUrl: '' })}
+                        style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', fontSize: '0.75rem' }}
+                      >
+                        (Remove)
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                <div style={{ marginTop: '0.75rem' }}>
                   <input
                     type="text"
                     className="form-input"
-                    placeholder="https://images.unsplash.com/..."
+                    style={{ fontSize: '0.8rem', padding: '0.5rem 0.75rem' }}
+                    placeholder="Or enter image URL (e.g. Unsplash or web image)"
                     value={serviceForm.imageUrl}
                     onChange={(e) => setServiceForm({ ...serviceForm, imageUrl: e.target.value })}
                   />
                 </div>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', alignItems: 'center' }}>
-                <div className="form-group">
-                  <label className="form-label">Price / Engagement Terms</label>
-                  <input
-                    type="text"
-                    className="form-input"
-                    placeholder="e.g. Grant Basis / Custom Quote"
-                    value={serviceForm.priceInfo}
-                    onChange={(e) => setServiceForm({ ...serviceForm, priceInfo: e.target.value })}
-                  />
-                </div>
-
-                <div className="form-group" style={{ flexDirection: 'row', alignItems: 'center', gap: '0.75rem', marginTop: '1.25rem' }}>
-                  <input
-                    type="checkbox"
-                    id="isFeatured"
-                    checked={serviceForm.isFeatured}
-                    onChange={(e) => setServiceForm({ ...serviceForm, isFeatured: e.target.checked })}
-                    style={{ width: '18px', height: '18px', cursor: 'pointer' }}
-                  />
-                  <label htmlFor="isFeatured" style={{ cursor: 'pointer', fontWeight: 600, fontSize: '0.9rem' }}>
-                    Feature on Home Page
-                  </label>
-                </div>
+              {/* Feature checkbox without Price field */}
+              <div className="form-group" style={{ flexDirection: 'row', alignItems: 'center', gap: '0.75rem' }}>
+                <input
+                  type="checkbox"
+                  id="isFeatured"
+                  checked={serviceForm.isFeatured}
+                  onChange={(e) => setServiceForm({ ...serviceForm, isFeatured: e.target.checked })}
+                  style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+                />
+                <label htmlFor="isFeatured" style={{ cursor: 'pointer', fontWeight: 600, fontSize: '0.9rem' }}>
+                  Feature in Home Page Deliverables Showcase
+                </label>
               </div>
 
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', marginTop: '1.75rem' }}>
@@ -1022,7 +1195,7 @@ export function DashboardClient({
       )}
 
       {/* =================================================================
-          MODAL: ADD / EDIT NEWS
+          MODAL: ADD / EDIT NEWS (With Direct Image Upload)
           ================================================================= */}
       {newsModalOpen && (
         <div className="modal-overlay" onClick={() => setNewsModalOpen(false)}>
@@ -1098,15 +1271,55 @@ export function DashboardClient({
                 />
               </div>
 
-              <div className="form-group">
-                <label className="form-label">Header Image URL</label>
-                <input
-                  type="text"
-                  className="form-input"
-                  placeholder="https://images.unsplash.com/..."
-                  value={newsForm.imageUrl}
-                  onChange={(e) => setNewsForm({ ...newsForm, imageUrl: e.target.value })}
-                />
+              {/* Direct image upload for news article */}
+              <div style={{
+                backgroundColor: 'var(--bg-card-subtle)',
+                border: '1px solid var(--border-color)',
+                borderRadius: 'var(--radius-md)',
+                padding: '1.25rem',
+                marginBottom: '1.25rem',
+              }}>
+                <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.5rem' }}>
+                  <ImageIcon size={16} style={{ color: 'var(--c2-teal)' }} />
+                  <span>Article Header Image</span>
+                </label>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+                  <label className="btn btn-outline btn-sm" style={{ cursor: 'pointer', backgroundColor: 'var(--bg-card)' }}>
+                    <Upload size={14} />
+                    <span>{uploadingField === 'newsImageUrl' ? 'Uploading...' : 'Upload Image File'}</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      style={{ display: 'none' }}
+                      disabled={uploadingField === 'newsImageUrl'}
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) handleFileUpload(file, 'newsImageUrl');
+                      }}
+                    />
+                  </label>
+
+                  {newsForm.imageUrl && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem', color: 'var(--c2-teal)', fontWeight: 600 }}>
+                      <CheckCircle size={15} />
+                      <span style={{ maxWidth: '250px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {newsForm.imageUrl}
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                <div style={{ marginTop: '0.75rem' }}>
+                  <input
+                    type="text"
+                    className="form-input"
+                    style={{ fontSize: '0.8rem', padding: '0.5rem 0.75rem' }}
+                    placeholder="Or enter image URL"
+                    value={newsForm.imageUrl}
+                    onChange={(e) => setNewsForm({ ...newsForm, imageUrl: e.target.value })}
+                  />
+                </div>
               </div>
 
               <div className="form-group" style={{ flexDirection: 'row', alignItems: 'center', gap: '0.75rem' }}>
@@ -1145,7 +1358,7 @@ export function DashboardClient({
               <X size={20} />
             </button>
 
-            <div className="badge badge-blue" style={{ marginBottom: '0.75rem' }}>
+            <div className="badge badge-orange" style={{ marginBottom: '0.75rem' }}>
               Reference ID: NEXA-REQ-{selectedInquiry.id.slice(-6).toUpperCase()}
             </div>
 
@@ -1204,8 +1417,85 @@ export function DashboardClient({
                 <span>Reply to Client via Email</span>
               </a>
 
-              <button onClick={() => setSelectedInquiry(null)} className="btn btn-outline">
-                Close
+              <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+                <button
+                  type="button"
+                  onClick={() => setItemToDelete({ type: 'inquiry', id: selectedInquiry.id, title: selectedInquiry.name })}
+                  className="btn btn-outline"
+                  style={{ color: '#ef4444', borderColor: 'rgba(239, 68, 68, 0.3)' }}
+                >
+                  <Trash2 size={15} />
+                  <span>Delete</span>
+                </button>
+
+                <button onClick={() => setSelectedInquiry(null)} className="btn btn-outline">
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* =================================================================
+          MODAL: CONFIRM DELETION (In-App Modal, No window.confirm)
+          ================================================================= */}
+      {itemToDelete && (
+        <div className="modal-overlay" onClick={() => !deleteLoading && setItemToDelete(null)}>
+          <div
+            className="modal-card"
+            style={{ maxWidth: '480px', textAlign: 'center', padding: '2rem' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{
+              width: '56px',
+              height: '56px',
+              borderRadius: '50%',
+              backgroundColor: 'rgba(239, 68, 68, 0.1)',
+              color: '#ef4444',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              margin: '0 auto 1.25rem',
+            }}>
+              <AlertCircle size={32} />
+            </div>
+
+            <h3 style={{ fontSize: '1.35rem', marginBottom: '0.75rem', fontWeight: 800 }}>
+              Confirm Deletion
+            </h3>
+
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.925rem', lineHeight: 1.5, marginBottom: '1.75rem' }}>
+              Are you sure you want to permanently delete{' '}
+              <strong style={{ color: 'var(--text-main)' }}>&ldquo;{itemToDelete.title}&rdquo;</strong>?
+              This record will be removed immediately and cannot be undone.
+            </p>
+
+            <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem' }}>
+              <button
+                type="button"
+                disabled={deleteLoading}
+                onClick={() => setItemToDelete(null)}
+                className="btn btn-outline"
+                style={{ minWidth: '110px' }}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={deleteLoading}
+                onClick={handleConfirmDelete}
+                className="btn"
+                style={{
+                  backgroundColor: '#ef4444',
+                  color: '#ffffff',
+                  border: 'none',
+                  minWidth: '130px',
+                  fontWeight: 700,
+                  cursor: deleteLoading ? 'not-allowed' : 'pointer',
+                }}
+              >
+                {deleteLoading ? 'Deleting...' : 'Delete Permanently'}
               </button>
             </div>
           </div>

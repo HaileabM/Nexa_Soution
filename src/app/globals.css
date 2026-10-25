@@ -8,26 +8,34 @@
    ========================================================================== */
 
 :root {
-  /* 3-COLOR BASE DEFINITIONS */
-  --c1-blue: #0284c7;           /* Color 1 */
-  --c1-blue-hover: #0369a1;
-  --c1-blue-soft: rgba(2, 132, 199, 0.10);
-  --c1-blue-border: rgba(2, 132, 199, 0.25);
+  /* NEXA SOLUTIONS LOGO-MATCHED COLOR SYSTEM */
+  /* Color 1: Nexa Warm Orange (from Logo 'Nexa' & 'Evidence') */
+  --c1-blue: #ea580c;           /* Primary Warm Orange */
+  --c1-blue-hover: #c2410c;
+  --c1-blue-soft: rgba(234, 88, 12, 0.10);
+  --c1-blue-border: rgba(234, 88, 12, 0.25);
 
-  --c2-teal: #0d9488;           /* Color 2 */
-  --c2-teal-hover: #0f766e;
-  --c2-teal-soft: rgba(13, 148, 136, 0.12);
-  --c2-teal-border: rgba(13, 148, 136, 0.25);
+  /* Color 2: Solutions Cyan/Teal (from Logo 'Solutions' & 'Creativity') */
+  --c2-teal: #0284c7;           /* Secondary Vibrant Cyan/Teal */
+  --c2-teal-hover: #0369a1;
+  --c2-teal-soft: rgba(2, 132, 199, 0.10);
+  --c2-teal-border: rgba(2, 132, 199, 0.25);
 
-  /* Color 3: Monochromatic Neutral Spectrum (Light Theme) */
-  --bg-main: #f8fafc;
+  /* Color 3: Impact Violet/Purple (from Logo 'Impact' & Emblem wing) */
+  --c3-purple: #7c3aed;
+  --c3-purple-hover: #6d28d9;
+  --c3-purple-soft: rgba(124, 58, 237, 0.10);
+  --c3-purple-border: rgba(124, 58, 237, 0.25);
+
+  /* Monochromatic Neutral Spectrum (Light Theme) */
+  --bg-main: #fcfdfe;
   --bg-card: #ffffff;
-  --bg-card-subtle: #f1f5f9;
-  --bg-nav: rgba(255, 255, 255, 0.88);
+  --bg-card-subtle: #f8fafc;
+  --bg-nav: rgba(255, 255, 255, 0.92);
   --text-main: #0f172a;
   --text-muted: #64748b;
   --border-color: #e2e8f0;
-  --border-focus: #0284c7;
+  --border-focus: #ea580c;
   --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.08);
   --shadow-md: 0 8px 24px rgba(15, 23, 42, 0.08);
   --shadow-lg: 0 16px 36px rgba(15, 23, 42, 0.12);
@@ -40,26 +48,30 @@
 }
 
 [data-theme='dark'] {
-  /* 3-COLOR SYSTEM (Dark Theme) */
-  --c1-blue: #38bdf8;           /* Color 1 Brightened for Dark Mode */
-  --c1-blue-hover: #0284c7;
-  --c1-blue-soft: rgba(56, 189, 248, 0.12);
-  --c1-blue-border: rgba(56, 189, 248, 0.25);
+  /* NEXA SOLUTIONS (Dark Theme) */
+  --c1-blue: #fb923c;           /* Brightened Warm Orange */
+  --c1-blue-hover: #f97316;
+  --c1-blue-soft: rgba(251, 146, 60, 0.14);
+  --c1-blue-border: rgba(251, 146, 60, 0.30);
 
-  --c2-teal: #2dd4bf;           /* Color 2 Brightened for Dark Mode */
-  --c2-teal-hover: #0d9488;
-  --c2-teal-soft: rgba(45, 212, 191, 0.12);
-  --c2-teal-border: rgba(45, 212, 191, 0.25);
+  --c2-teal: #38bdf8;           /* Brightened Cyan/Teal */
+  --c2-teal-hover: #0284c7;
+  --c2-teal-soft: rgba(56, 189, 248, 0.14);
+  --c2-teal-border: rgba(56, 189, 248, 0.30);
 
-  /* Color 3: Monochromatic Neutral Spectrum (Dark Mode) */
+  --c3-purple: #a78bfa;         /* Brightened Purple */
+  --c3-purple-hover: #8b5cf6;
+  --c3-purple-soft: rgba(167, 139, 250, 0.14);
+  --c3-purple-border: rgba(167, 139, 250, 0.30);
+
   --bg-main: #090d16;
   --bg-card: #0f172a;
   --bg-card-subtle: #1e293b;
-  --bg-nav: rgba(9, 13, 22, 0.88);
+  --bg-nav: rgba(9, 13, 22, 0.90);
   --text-main: #f8fafc;
   --text-muted: #94a3b8;
   --border-color: #1e293b;
-  --border-focus: #38bdf8;
+  --border-focus: #fb923c;
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
   --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.4);
   --shadow-lg: 0 16px 36px rgba(0, 0, 0, 0.5);
@@ -454,7 +466,7 @@ button, input, select, textarea {
   border-radius: var(--radius-full);
 }
 
-.badge-blue {
+.badge-blue, .badge-orange {
   background-color: var(--c1-blue-soft);
   color: var(--c1-blue);
   border: 1px solid var(--c1-blue-border);
@@ -464,6 +476,12 @@ button, input, select, textarea {
   background-color: var(--c2-teal-soft);
   color: var(--c2-teal);
   border: 1px solid var(--c2-teal-border);
+}
+
+.badge-purple {
+  background-color: var(--c3-purple-soft);
+  color: var(--c3-purple);
+  border: 1px solid var(--c3-purple-border);
 }
 
 .badge-neutral {
