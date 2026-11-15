@@ -670,19 +670,97 @@ button, input, select, textarea {
 }
 
 /* ==========================================================================
-   ADMIN LAYOUT
+   ADMIN LAYOUT & SIDEBAR
    ========================================================================== */
 .admin-shell {
   min-height: 100vh;
   display: flex;
-  flex-direction: column;
   background-color: var(--bg-main);
+  width: 100%;
+  position: relative;
 }
 
-.admin-header {
+.admin-sidebar {
+  width: 280px;
+  background-color: var(--bg-card);
+  border-right: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  flex-shrink: 0;
+  z-index: 100;
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.admin-sidebar-header {
+  padding: 1.25rem 1.25rem 1rem;
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.admin-sidebar-nav {
+  flex: 1;
+  padding: 1.25rem 0.85rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  overflow-y: auto;
+}
+
+.admin-sidebar-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.75rem 0.95rem;
+  border-radius: var(--radius-md);
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.875rem;
+  text-align: left;
+  transition: var(--transition);
+}
+
+.admin-sidebar-btn:hover {
+  color: var(--text-main);
+  background-color: var(--bg-card-subtle);
+}
+
+.admin-sidebar-btn.active {
+  background-color: var(--c1-blue-soft);
+  color: var(--c1-blue);
+  border-color: var(--c1-blue-border);
+  font-weight: 700;
+}
+
+.admin-sidebar-footer {
+  padding: 1rem 1.25rem;
+  border-top: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  background-color: var(--bg-card);
+}
+
+.admin-content-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 100vh;
+}
+
+.admin-topbar {
   background-color: var(--bg-card);
   border-bottom: 1px solid var(--border-color);
-  padding: 1rem 1.5rem;
+  padding: 0.85rem 1.75rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -693,10 +771,58 @@ button, input, select, textarea {
 
 .admin-main {
   flex: 1;
-  padding: 2.5rem 1.5rem;
-  max-width: 1300px;
+  padding: 2rem 2rem 3rem;
+  max-width: 1400px;
   width: 100%;
   margin: 0 auto;
+}
+
+.admin-sidebar-toggle-btn {
+  display: none;
+  background: transparent;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  padding: 0.4rem;
+  color: var(--text-main);
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+}
+
+.admin-sidebar-toggle-btn:hover {
+  background-color: var(--bg-card-subtle);
+}
+
+/* Mobile & Tablet Drawer */
+@media (max-width: 992px) {
+  .admin-sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    transform: translateX(-100%);
+    box-shadow: var(--shadow-xl);
+  }
+
+  .admin-sidebar.open {
+    transform: translateX(0);
+  }
+
+  .admin-sidebar-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    z-index: 95;
+    backdrop-filter: blur(2px);
+  }
+
+  .admin-sidebar-toggle-btn {
+    display: inline-flex;
+  }
+
+  .admin-main {
+    padding: 1.5rem 1rem 2.5rem;
+  }
 }
 
 .admin-tabs {

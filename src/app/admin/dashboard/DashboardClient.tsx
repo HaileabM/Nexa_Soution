@@ -31,6 +31,7 @@ import {
   Eye,
   Upload,
   FileUp,
+  Menu,
 } from 'lucide-react';
 
 interface ServiceItem {
@@ -143,6 +144,9 @@ export function DashboardClient({
   // Contact Messages State
   const [contactMessages, setContactMessages] = useState<ContactMessageItem[]>(initialContactMessages);
   const [selectedMessage, setSelectedMessage] = useState<ContactMessageItem | null>(null);
+
+  // Responsive Sidebar Drawer State
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   // Deletion Confirmation Modal State
   const [itemToDelete, setItemToDelete] = useState<{
@@ -534,191 +538,308 @@ export function DashboardClient({
 
   return (
     <div className="admin-shell">
-      {/* Top Admin Header */}
-      <header className="admin-header">
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-          <img
-            src="/nexa-logo-transparent.png"
-            alt="Nexa Logo"
-            style={{ height: '36px', width: 'auto' }}
-          />
-          <div>
-            <div style={{ fontWeight: 800, fontSize: '1.15rem' }}>
-              <span style={{ color: 'var(--c1-blue)' }}>Nexa</span> <span style={{ color: 'var(--c2-teal)' }}>Admin Portal</span>
+      {/* Mobile Sidebar Overlay */}
+      {sidebarOpen && (
+        <div
+          className="admin-sidebar-overlay"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
+      {/* Left Navigation Sidebar */}
+      <aside className={`admin-sidebar ${sidebarOpen ? 'open' : ''}`}>
+        <div className="admin-sidebar-header">
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            <img
+              src="/nexa-logo-transparent.png"
+              alt="Nexa Logo"
+              style={{ height: '34px', width: 'auto' }}
+            />
+            <div>
+              <div style={{ fontWeight: 800, fontSize: '1.05rem', lineHeight: 1.2 }}>
+                <span style={{ color: 'var(--c1-blue)' }}>Nexa</span> <span style={{ color: 'var(--c2-teal)' }}>Admin</span>
+              </div>
+              <div style={{ fontSize: '0.675rem', color: 'var(--text-muted)', fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase' }}>
+                Management Portal
+              </div>
             </div>
-            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-              Logged in as <strong style={{ color: 'var(--c1-blue)' }}>{adminUser.username}</strong> ({adminUser.name})
+          </div>
+
+          <button
+            className="admin-sidebar-toggle-btn"
+            onClick={() => setSidebarOpen(false)}
+            aria-label="Close sidebar"
+          >
+            <X size={18} />
+          </button>
+        </div>
+
+        {/* Administrator Profile Card */}
+        <div style={{ padding: '0.85rem 1.15rem', borderBottom: '1px solid var(--border-color)', backgroundColor: 'var(--bg-card-subtle)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+            <div style={{
+              width: '34px',
+              height: '34px',
+              borderRadius: '50%',
+              backgroundColor: 'var(--c1-blue-soft)',
+              color: 'var(--c1-blue)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontWeight: 800,
+              fontSize: '0.85rem',
+              flexShrink: 0
+            }}>
+              {adminUser.username.slice(0, 2).toUpperCase()}
+            </div>
+            <div style={{ minWidth: 0, flex: 1 }}>
+              <div style={{ fontWeight: 700, fontSize: '0.85rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {adminUser.name}
+              </div>
+              <div style={{ fontSize: '0.725rem', color: 'var(--text-muted)' }}>
+                @{adminUser.username} • <span style={{ color: 'var(--c2-teal)', fontWeight: 700 }}>{adminUser.role}</span>
+              </div>
             </div>
           </div>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+        {/* Vertical Navigation Links */}
+        <nav className="admin-sidebar-nav">
+          <div style={{ fontSize: '0.675rem', fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', padding: '0.25rem 0.5rem 0.4rem' }}>
+            Content & Operations
+          </div>
+
+          <button
+            onClick={() => { setActiveTab('services'); setSidebarOpen(false); }}
+            className={`admin-sidebar-btn ${activeTab === 'services' ? 'active' : ''}`}
+          >
+            <Layers size={18} />
+            <span style={{ flex: 1 }}>Deliverables</span>
+            <span className="badge badge-neutral" style={{ fontSize: '0.75rem', padding: '0.15rem 0.5rem' }}>{services.length}</span>
+          </button>
+
+          <button
+            onClick={() => { setActiveTab('news'); setSidebarOpen(false); }}
+            className={`admin-sidebar-btn ${activeTab === 'news' ? 'active' : ''}`}
+          >
+            <Newspaper size={18} />
+            <span style={{ flex: 1 }}>News & Insights</span>
+            <span className="badge badge-neutral" style={{ fontSize: '0.75rem', padding: '0.15rem 0.5rem' }}>{newsList.length}</span>
+          </button>
+
+          <button
+            onClick={() => { setActiveTab('inquiries'); setSidebarOpen(false); }}
+            className={`admin-sidebar-btn ${activeTab === 'inquiries' ? 'active' : ''}`}
+          >
+            <Inbox size={18} />
+            <span style={{ flex: 1 }}>Service Requests</span>
+            {inquiries.filter((i) => i.status === 'PENDING').length > 0 ? (
+              <span style={{ padding: '2px 7px', borderRadius: '10px', backgroundColor: '#ef4444', color: '#fff', fontSize: '0.7rem', fontWeight: 700 }}>
+                {inquiries.filter((i) => i.status === 'PENDING').length}
+              </span>
+            ) : (
+              <span className="badge badge-neutral" style={{ fontSize: '0.75rem', padding: '0.15rem 0.5rem' }}>{inquiries.length}</span>
+            )}
+          </button>
+
+          <button
+            onClick={() => { setActiveTab('messages'); setSidebarOpen(false); }}
+            className={`admin-sidebar-btn ${activeTab === 'messages' ? 'active' : ''}`}
+          >
+            <Mail size={18} />
+            <span style={{ flex: 1 }}>Contact Messages</span>
+            {contactMessages.filter((m) => m.status === 'UNREAD').length > 0 ? (
+              <span style={{ padding: '2px 7px', borderRadius: '10px', backgroundColor: 'var(--c2-teal)', color: '#fff', fontSize: '0.7rem', fontWeight: 700 }}>
+                {contactMessages.filter((m) => m.status === 'UNREAD').length}
+              </span>
+            ) : (
+              <span className="badge badge-neutral" style={{ fontSize: '0.75rem', padding: '0.15rem 0.5rem' }}>{contactMessages.length}</span>
+            )}
+          </button>
+
+          <div style={{ fontSize: '0.675rem', fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', padding: '1.25rem 0.5rem 0.4rem' }}>
+            System & Security
+          </div>
+
+          <button
+            onClick={() => { setActiveTab('password'); setSidebarOpen(false); }}
+            className={`admin-sidebar-btn ${activeTab === 'password' ? 'active' : ''}`}
+          >
+            <KeyRound size={18} />
+            <span style={{ flex: 1 }}>Change Password</span>
+          </button>
+        </nav>
+
+        {/* Sidebar Footer Shortcuts */}
+        <div className="admin-sidebar-footer">
           <Link
             href="/"
             target="_blank"
             className="btn btn-outline btn-sm"
-            style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}
+            style={{ width: '100%', justifyContent: 'flex-start', gap: '0.5rem' }}
           >
-            <span>Live Site</span>
-            <ExternalLink size={14} />
+            <ExternalLink size={15} />
+            <span>View Public Site</span>
           </Link>
 
-          <button onClick={toggleTheme} className="theme-toggle-btn" aria-label="Toggle theme">
-            {theme === 'light' ? <Moon size={18} /> : <Sun size={18} />}
+          <button
+            onClick={toggleTheme}
+            className="btn btn-outline btn-sm"
+            style={{ width: '100%', justifyContent: 'flex-start', gap: '0.5rem' }}
+          >
+            {theme === 'light' ? <Moon size={15} /> : <Sun size={15} />}
+            <span>{theme === 'light' ? 'Dark Mode' : 'Light Mode'}</span>
           </button>
 
           <button
             onClick={handleLogout}
             className="btn btn-outline btn-sm"
-            style={{ color: '#ef4444', borderColor: 'rgba(239, 68, 68, 0.3)' }}
+            style={{ width: '100%', justifyContent: 'flex-start', gap: '0.5rem', color: '#ef4444', borderColor: 'rgba(239, 68, 68, 0.3)' }}
           >
             <LogOut size={15} />
             <span>Sign Out</span>
           </button>
         </div>
-      </header>
+      </aside>
 
-      {/* Floating feedback alert */}
-      {feedback && (
-        <div style={{
-          position: 'fixed',
-          bottom: '2rem',
-          right: '2rem',
-          backgroundColor: 'var(--c1-blue)',
-          color: '#ffffff',
-          padding: '0.75rem 1.5rem',
-          borderRadius: 'var(--radius-md)',
-          boxShadow: 'var(--shadow-lg)',
-          zIndex: 1100,
-          fontWeight: 600,
-          display: 'flex',
-          alignItems: 'center',
-          gap: '0.5rem',
-        }}>
-          <CheckCircle size={18} />
-          <span>{feedback}</span>
-        </div>
-      )}
-
-      {/* Main Admin Content */}
-      <main className="admin-main">
-        {/* Metric Overview Cards */}
-        <div className="grid-4" style={{ marginBottom: '2.5rem' }}>
-          <div className="card" style={{ padding: '1.25rem' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-              <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>
-                Active Deliverables
-              </span>
-              <Layers size={18} style={{ color: 'var(--c1-blue)' }} />
-            </div>
-            <div style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--c1-blue)' }}>
-              {services.length}
-            </div>
-          </div>
-
-          <div className="card" style={{ padding: '1.25rem' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-              <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>
-                News & Articles
-              </span>
-              <Newspaper size={18} style={{ color: 'var(--c2-teal)' }} />
-            </div>
-            <div style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--c2-teal)' }}>
-              {newsList.length}
-            </div>
-          </div>
-
-          <div className="card" style={{ padding: '1.25rem' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-              <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>
-                Service Requests
-              </span>
-              <Inbox size={18} style={{ color: 'var(--c3-purple)' }} />
-            </div>
-            <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.5rem' }}>
-              <div style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--c3-purple)' }}>
-                {inquiries.length}
+      {/* Main Right Content Area */}
+      <div className="admin-content-area">
+        {/* Topbar */}
+        <header className="admin-topbar">
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            <button
+              onClick={() => setSidebarOpen(true)}
+              className="admin-sidebar-toggle-btn"
+              aria-label="Open sidebar"
+            >
+              <Menu size={20} />
+            </button>
+            <div>
+              <h1 style={{ fontSize: '1.2rem', fontWeight: 800, margin: 0 }}>
+                {activeTab === 'services' && 'Deliverables & Materials'}
+                {activeTab === 'news' && 'News & SBCC Insights'}
+                {activeTab === 'inquiries' && 'Incoming Service Requests'}
+                {activeTab === 'messages' && 'Website Contact Messages'}
+                {activeTab === 'password' && 'Change Administrator Password'}
+              </h1>
+              <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                Nexa Solutions SBCC Ethiopia Portal
               </div>
-              {inquiries.filter((i) => i.status === 'PENDING').length > 0 && (
-                <span className="badge badge-orange" style={{ fontSize: '0.75rem' }}>
-                  {inquiries.filter((i) => i.status === 'PENDING').length} new
-                </span>
-              )}
             </div>
           </div>
 
-          <div className="card" style={{ padding: '1.25rem' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-              <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>
-                Contact Messages
-              </span>
-              <Mail size={18} style={{ color: 'var(--c2-teal)' }} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            <Link
+              href="/"
+              target="_blank"
+              className="btn btn-outline btn-sm"
+              style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}
+            >
+              <span>Public Site</span>
+              <ExternalLink size={13} />
+            </Link>
+            <button onClick={toggleTheme} className="theme-toggle-btn" aria-label="Toggle theme">
+              {theme === 'light' ? <Moon size={17} /> : <Sun size={17} />}
+            </button>
+            <button
+              onClick={handleLogout}
+              className="btn btn-outline btn-sm"
+              style={{ color: '#ef4444', borderColor: 'rgba(239, 68, 68, 0.3)' }}
+              title="Sign Out"
+            >
+              <LogOut size={14} />
+            </button>
+          </div>
+        </header>
+
+        {/* Floating feedback alert */}
+        {feedback && (
+          <div style={{
+            position: 'fixed',
+            bottom: '2rem',
+            right: '2rem',
+            backgroundColor: 'var(--c1-blue)',
+            color: '#ffffff',
+            padding: '0.75rem 1.5rem',
+            borderRadius: 'var(--radius-md)',
+            boxShadow: 'var(--shadow-lg)',
+            zIndex: 1100,
+            fontWeight: 600,
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+          }}>
+            <CheckCircle size={18} />
+            <span>{feedback}</span>
+          </div>
+        )}
+
+        {/* Main Admin Content */}
+        <main className="admin-main">
+          {/* Metric Overview Cards */}
+          <div className="grid-4" style={{ marginBottom: '2.5rem' }}>
+            <div className="card" style={{ padding: '1.25rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>
+                  Active Deliverables
+                </span>
+                <Layers size={18} style={{ color: 'var(--c1-blue)' }} />
+              </div>
+              <div style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--c1-blue)' }}>
+                {services.length}
+              </div>
             </div>
-            <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.5rem' }}>
+
+            <div className="card" style={{ padding: '1.25rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>
+                  News & Articles
+                </span>
+                <Newspaper size={18} style={{ color: 'var(--c2-teal)' }} />
+              </div>
               <div style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--c2-teal)' }}>
-                {contactMessages.length}
+                {newsList.length}
               </div>
-              {contactMessages.filter((m) => m.status === 'UNREAD').length > 0 && (
-                <span className="badge badge-teal" style={{ fontSize: '0.75rem' }}>
-                  {contactMessages.filter((m) => m.status === 'UNREAD').length} unread
+            </div>
+
+            <div className="card" style={{ padding: '1.25rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>
+                  Service Requests
                 </span>
-              )}
+                <Inbox size={18} style={{ color: 'var(--c3-purple)' }} />
+              </div>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.5rem' }}>
+                <div style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--c3-purple)' }}>
+                  {inquiries.length}
+                </div>
+                {inquiries.filter((i) => i.status === 'PENDING').length > 0 && (
+                  <span className="badge badge-orange" style={{ fontSize: '0.75rem' }}>
+                    {inquiries.filter((i) => i.status === 'PENDING').length} new
+                  </span>
+                )}
+              </div>
+            </div>
+
+            <div className="card" style={{ padding: '1.25rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>
+                  Contact Messages
+                </span>
+                <Mail size={18} style={{ color: 'var(--c2-teal)' }} />
+              </div>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.5rem' }}>
+                <div style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--c2-teal)' }}>
+                  {contactMessages.length}
+                </div>
+                {contactMessages.filter((m) => m.status === 'UNREAD').length > 0 && (
+                  <span className="badge badge-teal" style={{ fontSize: '0.75rem' }}>
+                    {contactMessages.filter((m) => m.status === 'UNREAD').length} unread
+                  </span>
+                )}
+              </div>
             </div>
           </div>
-        </div>
-
-        {/* Admin Navigation Tabs */}
-        <div className="admin-tabs">
-          <button
-            onClick={() => setActiveTab('services')}
-            className={`admin-tab ${activeTab === 'services' ? 'active' : ''}`}
-          >
-            <Layers size={18} />
-            <span>Manage Deliverables & Materials ({services.length})</span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('news')}
-            className={`admin-tab ${activeTab === 'news' ? 'active' : ''}`}
-          >
-            <Newspaper size={18} />
-            <span>Manage News & Insights ({newsList.length})</span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('inquiries')}
-            className={`admin-tab ${activeTab === 'inquiries' ? 'active' : ''}`}
-          >
-            <Inbox size={18} />
-            <span>Service Requests ({inquiries.length})</span>
-            {inquiries.filter((i) => i.status === 'PENDING').length > 0 && (
-              <span style={{ marginLeft: '4px', padding: '2px 6px', borderRadius: '10px', backgroundColor: '#ef4444', color: '#fff', fontSize: '0.7rem', fontWeight: 700 }}>
-                {inquiries.filter((i) => i.status === 'PENDING').length}
-              </span>
-            )}
-          </button>
-
-          <button
-            onClick={() => setActiveTab('messages')}
-            className={`admin-tab ${activeTab === 'messages' ? 'active' : ''}`}
-          >
-            <Mail size={18} />
-            <span>Contact Messages ({contactMessages.length})</span>
-            {contactMessages.filter((m) => m.status === 'UNREAD').length > 0 && (
-              <span style={{ marginLeft: '4px', padding: '2px 6px', borderRadius: '10px', backgroundColor: 'var(--c2-teal)', color: '#fff', fontSize: '0.7rem', fontWeight: 700 }}>
-                {contactMessages.filter((m) => m.status === 'UNREAD').length}
-              </span>
-            )}
-          </button>
-
-          <button
-            onClick={() => setActiveTab('password')}
-            className={`admin-tab ${activeTab === 'password' ? 'active' : ''}`}
-          >
-            <KeyRound size={18} />
-            <span>Admin Password & Security</span>
-          </button>
-        </div>
 
         {/* =================================================================
             TAB 1: SERVICES & HEALTH MATERIALS MANAGEMENT
@@ -1188,6 +1309,7 @@ export function DashboardClient({
           </div>
         )}
       </main>
+    </div>
 
       {/* =================================================================
           MODAL: ADD / EDIT DELIVERABLE (With Direct File Upload & No Price)
