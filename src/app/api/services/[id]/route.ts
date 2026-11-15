@@ -47,34 +47,37 @@ export async function PUT(
         updated = await prisma.service.update({
           where: { id: existing.id },
           data: {
-            title: data.title,
-            category: data.category,
-            type: data.type,
-            shortDesc: data.shortDesc,
-            description: data.description,
-            features: data.features || '',
-            fileUrl: data.fileUrl || null,
-            imageUrl: data.imageUrl || null,
-            isFeatured: Boolean(data.isFeatured),
+            title: data.title ?? existing.title,
+            category: data.category ?? existing.category,
+            type: data.type ?? existing.type,
+            shortDesc: data.shortDesc ?? existing.shortDesc,
+            description: data.description ?? existing.description,
+            features: data.features !== undefined ? data.features : existing.features,
+            fileUrl: data.fileUrl !== undefined ? (data.fileUrl ? data.fileUrl.trim() : null) : existing.fileUrl,
+            imageUrl: data.imageUrl !== undefined ? (data.imageUrl ? data.imageUrl.trim() : null) : existing.imageUrl,
+            priceInfo: data.priceInfo !== undefined ? data.priceInfo : existing.priceInfo,
+            isFeatured: data.isFeatured !== undefined ? Boolean(data.isFeatured) : existing.isFeatured,
           },
         });
       } else {
-        const baseSlug = (data.title || 'service')
+        const baseSlug = (data.title || 'deliverable')
           .toLowerCase()
           .trim()
           .replace(/[^a-z0-9]+/g, '-')
           .replace(/(^-|-$)+/g, '');
+        const cleanSlug = baseSlug || 'deliverable';
         updated = await prisma.service.create({
           data: {
-            title: data.title,
-            slug: `${baseSlug}-${Date.now().toString().slice(-4)}`,
+            title: data.title || 'Untitled Deliverable',
+            slug: `${cleanSlug}-${Date.now()}`,
             category: data.category || 'Creative',
             type: data.type || 'PDF',
             shortDesc: data.shortDesc || '',
             description: data.description || '',
             features: data.features || '',
-            fileUrl: data.fileUrl || null,
-            imageUrl: data.imageUrl || null,
+            fileUrl: data.fileUrl ? data.fileUrl.trim() : null,
+            imageUrl: data.imageUrl ? data.imageUrl.trim() : null,
+            priceInfo: data.priceInfo || null,
             isFeatured: Boolean(data.isFeatured),
           },
         });

@@ -76,11 +76,22 @@ interface InquiryItem {
   createdAt: string;
 }
 
+interface ContactMessageItem {
+  id: string;
+  name: string;
+  email: string;
+  subject: string;
+  message: string;
+  status: string;
+  createdAt: string;
+}
+
 interface DashboardClientProps {
   adminUser: { id: string; username: string; name: string; role: string };
   initialServices: ServiceItem[];
   initialNews: NewsItem[];
   initialInquiries: InquiryItem[];
+  initialContactMessages?: ContactMessageItem[];
 }
 
 export function DashboardClient({
@@ -88,11 +99,12 @@ export function DashboardClient({
   initialServices,
   initialNews,
   initialInquiries,
+  initialContactMessages = [],
 }: DashboardClientProps) {
   const router = useRouter();
   const { theme, toggleTheme } = useTheme();
 
-  const [activeTab, setActiveTab] = useState<'services' | 'news' | 'inquiries' | 'password'>('services');
+  const [activeTab, setActiveTab] = useState<'services' | 'news' | 'inquiries' | 'messages' | 'password'>('services');
 
   // Services State
   const [services, setServices] = useState<ServiceItem[]>(initialServices);
@@ -128,9 +140,13 @@ export function DashboardClient({
   const [inquiries, setInquiries] = useState<InquiryItem[]>(initialInquiries);
   const [selectedInquiry, setSelectedInquiry] = useState<InquiryItem | null>(null);
 
+  // Contact Messages State
+  const [contactMessages, setContactMessages] = useState<ContactMessageItem[]>(initialContactMessages);
+  const [selectedMessage, setSelectedMessage] = useState<ContactMessageItem | null>(null);
+
   // Deletion Confirmation Modal State
   const [itemToDelete, setItemToDelete] = useState<{
-    type: 'service' | 'news' | 'inquiry';
+    type: 'service' | 'news' | 'inquiry' | 'message';
     id: string;
     title: string;
   } | null>(null);
@@ -217,10 +233,10 @@ export function DashboardClient({
       type: item.type,
       shortDesc: item.shortDesc,
       description: item.description,
-      features: item.features,
+      features: item.features || '',
       fileUrl: item.fileUrl || '',
       imageUrl: item.imageUrl || '',
-      isFeatured: item.isFeatured,
+      isFeatured: Boolean(item.isFeatured),
     });
     setServiceModalOpen(true);
   };
@@ -349,6 +365,8 @@ export function DashboardClient({
           ? `/api/services/${itemToDelete.id}`
           : itemToDelete.type === 'news'
           ? `/api/news/${itemToDelete.id}`
+          : itemToDelete.type === 'message'
+          ? `/api/contact/${itemToDelete.id}`
           : `/api/inquiries/${itemToDelete.id}`;
 
       const res = await fetch(endpoint, { method: 'DELETE' });
@@ -367,6 +385,12 @@ export function DashboardClient({
         if (selectedInquiry?.id === itemToDelete.id) {
           setSelectedInquiry(null);
         }
+      } else if (itemToDelete.type === 'message') {
+        setContactMessages((prev) => prev.filter((m) => m.id !== itemToDelete.id));
+        showFeedback(`Contact message from "${itemToDelete.title}" deleted.`);
+        if (selectedMessage?.id === itemToDelete.id) {
+          setSelectedMessage(null);
+        }
       }
 
       setItemToDelete(null);
@@ -379,7 +403,7 @@ export function DashboardClient({
   };
 
   // -------------------------------------------------------------
-  // INQUIRY STATUS UPDATE
+  // INQUIRY STATUS UPDATE & REFRESH
   // -------------------------------------------------------------
   const handleUpdateInquiryStatus = async (id: string, newStatus: string) => {
     try {
@@ -392,10 +416,79 @@ export function DashboardClient({
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to update status');
 
-      setInquiries(inquiries.map((inq) => (inq.id === id ? data.inquiry : inq)));
+      setInquiries((prev) => prev.map((inq) => (inq.id === id ? data.inquiry : inq)));
       showFeedback(`Status set to ${newStatus}`);
     } catch (err: any) {
       alert(err.message);
+    }
+  };
+
+  const refreshInquiries = async () => {
+    setActionLoading(true);
+    try {
+      const res = await fetch('/api/inquiries');
+      const data = await res.json();
+      if (data.inquiries) {
+        setInquiries(data.inquiries);
+        showFeedback('Service requests updated');
+      }
+    } catch (err) {
+      showFeedback('Failed to refresh service requests');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  // -------------------------------------------------------------
+  // CONTACT MESSAGE STATUS UPDATE & REFRESH
+  // -------------------------------------------------------------
+  const handleUpdateMessageStatus = async (id: string, newStatus: string) => {
+    try {
+      const res = await fetch(`/api/contact/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to update message status');
+
+      setContactMessages((prev) => prev.map((msg) => (msg.id === id ? data.message : msg)));
+      showFeedback(`Message marked as ${newStatus}`);
+    } catch (err: any) {
+      alert(err.message);
+    }
+  };
+
+  const refreshContactMessages = async () => {
+    setActionLoading(true);
+    try {
+      const res = await fetch('/api/contact');
+      const data = await res.json();
+      if (data.messages) {
+        setContactMessages(data.messages);
+        showFeedback('Contact messages updated');
+      }
+    } catch (err) {
+      showFeedback('Failed to refresh contact messages');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const refreshServices = async () => {
+    setActionLoading(true);
+    try {
+      const res = await fetch('/api/services');
+      const data = await res.json();
+      if (data.services) {
+        setServices(data.services);
+        showFeedback('Deliverables list updated');
+      }
+    } catch (err) {
+      showFeedback('Failed to refresh deliverables');
+    } finally {
+      setActionLoading(false);
     }
   };
 
@@ -542,20 +635,34 @@ export function DashboardClient({
               </span>
               <Inbox size={18} style={{ color: 'var(--c3-purple)' }} />
             </div>
-            <div style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--c3-purple)' }}>
-              {inquiries.length}
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.5rem' }}>
+              <div style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--c3-purple)' }}>
+                {inquiries.length}
+              </div>
+              {inquiries.filter((i) => i.status === 'PENDING').length > 0 && (
+                <span className="badge badge-orange" style={{ fontSize: '0.75rem' }}>
+                  {inquiries.filter((i) => i.status === 'PENDING').length} new
+                </span>
+              )}
             </div>
           </div>
 
           <div className="card" style={{ padding: '1.25rem' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
               <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>
-                Dispatch Channel
+                Contact Messages
               </span>
               <Mail size={18} style={{ color: 'var(--c2-teal)' }} />
             </div>
-            <div style={{ fontSize: '0.825rem', fontWeight: 700, color: 'var(--text-main)', wordBreak: 'break-all' }}>
-              nexasolutionsethiopia@gmail.com
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.5rem' }}>
+              <div style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--c2-teal)' }}>
+                {contactMessages.length}
+              </div>
+              {contactMessages.filter((m) => m.status === 'UNREAD').length > 0 && (
+                <span className="badge badge-teal" style={{ fontSize: '0.75rem' }}>
+                  {contactMessages.filter((m) => m.status === 'UNREAD').length} unread
+                </span>
+              )}
             </div>
           </div>
         </div>
@@ -584,6 +691,24 @@ export function DashboardClient({
           >
             <Inbox size={18} />
             <span>Service Requests ({inquiries.length})</span>
+            {inquiries.filter((i) => i.status === 'PENDING').length > 0 && (
+              <span style={{ marginLeft: '4px', padding: '2px 6px', borderRadius: '10px', backgroundColor: '#ef4444', color: '#fff', fontSize: '0.7rem', fontWeight: 700 }}>
+                {inquiries.filter((i) => i.status === 'PENDING').length}
+              </span>
+            )}
+          </button>
+
+          <button
+            onClick={() => setActiveTab('messages')}
+            className={`admin-tab ${activeTab === 'messages' ? 'active' : ''}`}
+          >
+            <Mail size={18} />
+            <span>Contact Messages ({contactMessages.length})</span>
+            {contactMessages.filter((m) => m.status === 'UNREAD').length > 0 && (
+              <span style={{ marginLeft: '4px', padding: '2px 6px', borderRadius: '10px', backgroundColor: 'var(--c2-teal)', color: '#fff', fontSize: '0.7rem', fontWeight: 700 }}>
+                {contactMessages.filter((m) => m.status === 'UNREAD').length}
+              </span>
+            )}
           </button>
 
           <button
@@ -608,10 +733,15 @@ export function DashboardClient({
                 </p>
               </div>
 
-              <button onClick={openCreateServiceModal} className="btn btn-primary">
-                <Plus size={16} />
-                <span>Upload New Deliverable</span>
-              </button>
+              <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+                <button onClick={refreshServices} disabled={actionLoading} className="btn btn-outline">
+                  <span>Refresh</span>
+                </button>
+                <button onClick={openCreateServiceModal} className="btn btn-primary">
+                  <Plus size={16} />
+                  <span>Upload New Deliverable</span>
+                </button>
+              </div>
             </div>
 
             <div className="table-container">
@@ -776,11 +906,17 @@ export function DashboardClient({
             ================================================================= */}
         {activeTab === 'inquiries' && (
           <div>
-            <div style={{ marginBottom: '1.5rem' }}>
-              <h2 style={{ fontSize: '1.5rem' }}>Incoming Service Requests</h2>
-              <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>
-                These are requests generated from the Service Utilization Form and sent to <strong>nexasolutionsethiopia@gmail.com</strong>.
-              </p>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
+              <div>
+                <h2 style={{ fontSize: '1.5rem' }}>Incoming Service Requests</h2>
+                <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>
+                  These are requests generated from the Service Utilization Form and sent to <strong>nexasolutionsethiopia@gmail.com</strong>.
+                </p>
+              </div>
+
+              <button onClick={refreshInquiries} disabled={actionLoading} className="btn btn-outline btn-sm">
+                <span>Refresh Requests</span>
+              </button>
             </div>
 
             {inquiries.length === 0 ? (
@@ -868,7 +1004,110 @@ export function DashboardClient({
         )}
 
         {/* =================================================================
-            TAB 4: ADMIN PASSWORD & CREDENTIAL MANAGEMENT
+            TAB 4: CONTACT MESSAGES
+            ================================================================= */}
+        {activeTab === 'messages' && (
+          <div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
+              <div>
+                <h2 style={{ fontSize: '1.5rem' }}>Website Contact Messages</h2>
+                <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>
+                  Inquiries and messages sent through the public &ldquo;Contact Us&rdquo; portal to <strong>nexasolutionsethiopia@gmail.com</strong>.
+                </p>
+              </div>
+
+              <button onClick={refreshContactMessages} disabled={actionLoading} className="btn btn-outline btn-sm">
+                <span>Refresh Messages</span>
+              </button>
+            </div>
+
+            {contactMessages.length === 0 ? (
+              <div className="card" style={{ textAlign: 'center', padding: '3rem' }}>
+                <p>No contact messages received yet.</p>
+              </div>
+            ) : (
+              <div className="table-container">
+                <table className="admin-table">
+                  <thead>
+                    <tr>
+                      <th>Sender</th>
+                      <th>Subject & Message Snippet</th>
+                      <th>Status</th>
+                      <th>Received</th>
+                      <th style={{ textAlign: 'right' }}>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {contactMessages.map((msg) => (
+                      <tr key={msg.id} style={{ backgroundColor: msg.status === 'UNREAD' ? 'var(--bg-card-subtle)' : 'transparent' }}>
+                        <td>
+                          <div style={{ fontWeight: 700 }}>{msg.name}</div>
+                          <div style={{ fontSize: '0.8rem', color: 'var(--c1-blue)' }}>{msg.email}</div>
+                        </td>
+                        <td>
+                          <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>{msg.subject}</div>
+                          <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', maxWidth: '320px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            {msg.message}
+                          </div>
+                        </td>
+                        <td>
+                          <select
+                            value={msg.status}
+                            onChange={(e) => handleUpdateMessageStatus(msg.id, e.target.value)}
+                            style={{
+                              padding: '0.35rem 0.65rem',
+                              borderRadius: 'var(--radius-sm)',
+                              border: '1px solid var(--border-color)',
+                              backgroundColor: 'var(--bg-card)',
+                              color: 'var(--text-main)',
+                              fontSize: '0.8rem',
+                              fontWeight: 600,
+                            }}
+                          >
+                            <option value="UNREAD">UNREAD</option>
+                            <option value="READ">READ</option>
+                            <option value="REPLIED">REPLIED</option>
+                          </select>
+                        </td>
+                        <td style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                          {new Date(msg.createdAt).toLocaleDateString()}
+                        </td>
+                        <td style={{ textAlign: 'right' }}>
+                          <div style={{ display: 'inline-flex', gap: '0.5rem' }}>
+                            <button
+                              onClick={() => {
+                                setSelectedMessage(msg);
+                                if (msg.status === 'UNREAD') {
+                                  handleUpdateMessageStatus(msg.id, 'READ');
+                                }
+                              }}
+                              className="btn btn-outline btn-sm"
+                              title="View Message"
+                            >
+                              <Eye size={14} />
+                              <span>View</span>
+                            </button>
+                            <button
+                              onClick={() => setItemToDelete({ type: 'message', id: msg.id, title: `${msg.name} (${msg.subject})` })}
+                              className="btn btn-outline btn-sm"
+                              style={{ color: '#ef4444', borderColor: 'rgba(239, 68, 68, 0.3)' }}
+                              title="Delete Message"
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* =================================================================
+            TAB 5: ADMIN PASSWORD & CREDENTIAL MANAGEMENT
             ================================================================= */}
         {activeTab === 'password' && (
           <div style={{ maxWidth: '600px', margin: '0 auto' }}>
@@ -1429,6 +1668,95 @@ export function DashboardClient({
                 </button>
 
                 <button onClick={() => setSelectedInquiry(null)} className="btn btn-outline">
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* =================================================================
+          MODAL: VIEW CONTACT MESSAGE DETAILS
+          ================================================================= */}
+      {selectedMessage && (
+        <div className="modal-overlay" onClick={() => setSelectedMessage(null)}>
+          <div className="modal-card" onClick={(e) => e.stopPropagation()}>
+            <button className="modal-close-btn" onClick={() => setSelectedMessage(null)}>
+              <X size={20} />
+            </button>
+
+            <div className="badge badge-teal" style={{ marginBottom: '0.75rem' }}>
+              Reference ID: NEXA-MSG-{selectedMessage.id.slice(-6).toUpperCase()}
+            </div>
+
+            <h3 style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>
+              {selectedMessage.subject}
+            </h3>
+
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+              gap: '1rem',
+              padding: '1.25rem',
+              borderRadius: 'var(--radius-md)',
+              backgroundColor: 'var(--bg-card-subtle)',
+              marginBottom: '1.5rem',
+            }}>
+              <div>
+                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 700 }}>Sender Name</div>
+                <div style={{ fontWeight: 600 }}>{selectedMessage.name}</div>
+              </div>
+              <div>
+                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 700 }}>Email Address</div>
+                <div style={{ fontWeight: 600, color: 'var(--c1-blue)' }}>{selectedMessage.email}</div>
+              </div>
+              <div>
+                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 700 }}>Status</div>
+                <div style={{ fontWeight: 600 }}>{selectedMessage.status}</div>
+              </div>
+              <div>
+                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 700 }}>Received At</div>
+                <div style={{ fontWeight: 600 }}>{new Date(selectedMessage.createdAt).toLocaleString()}</div>
+              </div>
+            </div>
+
+            <div style={{ marginBottom: '1.5rem' }}>
+              <div style={{ fontSize: '0.85rem', fontWeight: 700, marginBottom: '0.5rem' }}>Message Content:</div>
+              <div style={{
+                padding: '1rem',
+                borderRadius: 'var(--radius-sm)',
+                border: '1px solid var(--border-color)',
+                backgroundColor: 'var(--bg-main)',
+                fontSize: '0.9rem',
+                lineHeight: 1.6,
+                whiteSpace: 'pre-wrap',
+              }}>
+                {selectedMessage.message}
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
+              <a
+                href={`mailto:${selectedMessage.email}?subject=${encodeURIComponent(`Re: [Nexa Solutions] ${selectedMessage.subject}`)}`}
+                className="btn btn-primary"
+              >
+                <Mail size={16} />
+                <span>Reply to Sender via Email</span>
+              </a>
+
+              <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+                <button
+                  type="button"
+                  onClick={() => setItemToDelete({ type: 'message', id: selectedMessage.id, title: `${selectedMessage.name} (${selectedMessage.subject})` })}
+                  className="btn btn-outline"
+                  style={{ color: '#ef4444', borderColor: 'rgba(239, 68, 68, 0.3)' }}
+                >
+                  <Trash2 size={15} />
+                  <span>Delete</span>
+                </button>
+
+                <button onClick={() => setSelectedMessage(null)} className="btn btn-outline">
                   Close
                 </button>
               </div>

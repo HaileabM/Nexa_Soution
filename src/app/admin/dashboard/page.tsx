@@ -9,7 +9,7 @@ export const revalidate = 0;
 
 export const metadata = {
   title: 'Admin Dashboard | Nexa Solutions',
-  description: 'Administrative portal for managing services, news, and service utilization inquiries.',
+  description: 'Administrative portal for managing deliverables, news, service inquiries, and contact messages.',
 };
 
 export default async function AdminDashboardPage() {
@@ -22,6 +22,7 @@ export default async function AdminDashboardPage() {
   let services: any[] = [];
   let newsList: any[] = [];
   let inquiries: any[] = [];
+  let contactMessages: any[] = [];
   let isDbOk = false;
 
   try {
@@ -35,10 +36,14 @@ export default async function AdminDashboardPage() {
       prisma.serviceInquiry.findMany({
         orderBy: { createdAt: 'desc' },
       }),
+      prisma.contactMessage.findMany({
+        orderBy: { createdAt: 'desc' },
+      }),
     ]);
     services = results[0];
     newsList = results[1];
     inquiries = results[2];
+    contactMessages = results[3];
     isDbOk = true;
   } catch (err) {
     console.warn('[AdminDashboardPage] Database queries failed, loading fallback data:', err);
@@ -61,6 +66,7 @@ export default async function AdminDashboardPage() {
       initialServices={JSON.parse(JSON.stringify(services))}
       initialNews={JSON.parse(JSON.stringify(newsList))}
       initialInquiries={JSON.parse(JSON.stringify(inquiries))}
+      initialContactMessages={JSON.parse(JSON.stringify(contactMessages))}
     />
   );
 }

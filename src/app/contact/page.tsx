@@ -2,6 +2,8 @@ import React from 'react';
 import { PublicLayout } from '@/components/PublicLayout';
 import { ContactClient } from './ContactClient';
 
+export const dynamic = 'force-dynamic';
+
 export const metadata = {
   title: 'Contact Us | Nexa Solutions Ethiopia',
   description: 'General inquiries for Nexa Solutions office in Addis Ababa, Ethiopia.',

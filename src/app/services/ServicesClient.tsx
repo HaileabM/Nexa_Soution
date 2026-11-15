@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import Link from 'next/link';
 import {
   FileText,
   Image as ImageIcon,
@@ -13,6 +14,8 @@ import {
   BrainCircuit,
   BarChart3,
   Users,
+  Mail,
+  ArrowRight,
 } from 'lucide-react';
 
 interface ServiceItem {
@@ -124,7 +127,7 @@ export function ServicesClient({ initialServices }: { initialServices: ServiceIt
               </div>
             )}
 
-            {/* Bottom: Sample Material Preview / Download (No Order Button) */}
+            {/* Bottom: Sample Material Preview / Download & Direct Utilization Request */}
             <div style={{
               display: 'flex',
               alignItems: 'center',
@@ -132,28 +135,37 @@ export function ServicesClient({ initialServices }: { initialServices: ServiceIt
               marginTop: 'auto',
               paddingTop: '1rem',
               borderTop: '1px solid var(--border-color)',
+              flexWrap: 'wrap',
+              gap: '0.5rem',
             }}>
-              <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                Demonstration Material
-              </span>
+              <div>
+                {service.fileUrl ? (
+                  <a
+                    href={service.fileUrl}
+                    download
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn btn-outline btn-sm"
+                    title="Download Preview Material"
+                  >
+                    <Download size={14} />
+                    <span>Sample File</span>
+                  </a>
+                ) : (
+                  <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>
+                    Demonstration Material
+                  </span>
+                )}
+              </div>
 
-              {service.fileUrl ? (
-                <a
-                  href={service.fileUrl}
-                  download
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="btn btn-outline btn-sm"
-                  title="Download Preview Material"
-                >
-                  <Download size={14} />
-                  <span>Sample File</span>
-                </a>
-              ) : (
-                <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>
-                  Available on Request
-                </span>
-              )}
+              <Link
+                href={`/request-service?service=${encodeURIComponent(service.title)}`}
+                className="btn btn-primary btn-sm"
+                title={`Request customized ${service.title}`}
+              >
+                <Mail size={13} />
+                <span>Request Deliverable</span>
+              </Link>
             </div>
           </div>
         ))}

@@ -41,36 +41,37 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Title, short description and full description are required' }, { status: 400 });
     }
 
-    // Generate unique slug
+    // Generate guaranteed unique slug
     const baseSlug = title
       .toLowerCase()
       .trim()
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/(^-|-$)+/g, '');
-    const uniqueSlug = `${baseSlug}-${Date.now().toString().slice(-4)}`;
+    const cleanSlug = baseSlug || 'deliverable';
+    const uniqueSlug = `${cleanSlug}-${Date.now()}`;
 
     try {
       const newService = await prisma.service.create({
         data: {
           title,
           slug: uniqueSlug,
-          category: category || 'Consulting',
+          category: category || 'Creative',
           type: type || 'CONSULTING',
           shortDesc,
           description,
           features: features || '',
-          fileUrl: fileUrl || null,
-          imageUrl: imageUrl || 'https://images.unsplash.com/photo-1576091160550-2173dba999ef?auto=format&fit=crop&w=800&q=80',
+          fileUrl: fileUrl ? fileUrl.trim() : null,
+          imageUrl: imageUrl ? imageUrl.trim() : 'https://images.unsplash.com/photo-1576091160550-2173dba999ef?auto=format&fit=crop&w=800&q=80',
           priceInfo: priceInfo || null,
           isFeatured: Boolean(isFeatured),
         },
       });
 
       return NextResponse.json({ success: true, service: newService }, { status: 201 });
-    } catch (dbErr) {
+    } catch (dbErr: any) {
       console.error('Error creating service in database:', dbErr);
       return NextResponse.json({
-        error: 'Database is unavailable or in read-only mode. Connect a cloud database (e.g. Supabase, Neon PostgreSQL) to save services permanently.'
+        error: dbErr?.message || 'Database error occurred while saving deliverable.'
       }, { status: 400 });
     }
   } catch (error: any) {

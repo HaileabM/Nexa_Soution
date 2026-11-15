@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getCurrentAdmin } from '@/lib/auth';
+import { sendServiceRequestNotification } from '@/lib/email';
 
 export async function GET(req: NextRequest) {
   try {
@@ -48,7 +49,7 @@ export async function POST(req: NextRequest) {
         },
       });
     } catch (dbErr) {
-      console.warn('[api/inquiries] Database unavailable on serverless runtime, generated fallback inquiry:', dbErr);
+      console.warn('[api/inquiries] Database error, generated fallback inquiry:', dbErr);
       inquiry = {
         id: `REQ-${Date.now().toString().slice(-6)}`,
         name,
@@ -64,7 +65,26 @@ export async function POST(req: NextRequest) {
       };
     }
 
+    // Attempt direct SMTP email dispatch to Nexa official mailbox
+    let emailResult: { success: boolean; reason?: string } = { success: false, reason: 'NOT_ATTEMPTED' };
+    try {
+      emailResult = await sendServiceRequestNotification({
+        name,
+        organization,
+        email,
+        phone,
+        serviceType,
+        projectScope,
+        targetAudience,
+        timeline,
+        id: inquiry.id,
+      });
+    } catch (mailErr) {
+      console.warn('[api/inquiries] Could not dispatch SMTP email directly:', mailErr);
+    }
+
     // Formatted mailto link for direct utilization email
+    const targetEmail = process.env.NEXT_PUBLIC_SERVICE_EMAIL || 'nexasolutionsethiopia@gmail.com';
     const emailSubject = encodeURIComponent(`[Service Utilization Request] ${serviceType} - ${organization || name}`);
     const emailBody = encodeURIComponent(
       `Hello Nexa Solutions SBCC Team,\n\n` +
@@ -81,13 +101,14 @@ export async function POST(req: NextRequest) {
       `Looking forward to partnering with you for healthier and stronger Ethiopia.\n`
     );
 
-    const mailtoUrl = `mailto:nexasolutionsethiopia@gmail.com?subject=${emailSubject}&body=${emailBody}`;
+    const mailtoUrl = `mailto:${targetEmail}?subject=${emailSubject}&body=${emailBody}`;
 
     return NextResponse.json({
       success: true,
       inquiry,
+      emailSent: emailResult.success,
       mailtoUrl,
-      targetEmail: 'nexasolutionsethiopia@gmail.com',
+      targetEmail,
     }, { status: 201 });
   } catch (error) {
     console.error('Error recording service inquiry:', error);

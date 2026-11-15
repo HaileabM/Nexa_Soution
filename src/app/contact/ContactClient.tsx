@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { Mail, MapPin, Phone, Send, CheckCircle2, ArrowRight, MessageSquare, Clock, Globe, Share2 } from 'lucide-react';
+import { Mail, MapPin, Phone, Send, CheckCircle2, ArrowRight, Clock, Share2, Copy, ExternalLink } from 'lucide-react';
 
 export function ContactClient() {
   const [formData, setFormData] = useState({
@@ -14,6 +14,14 @@ export function ContactClient() {
 
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [successData, setSuccessData] = useState<{
+    mailtoUrl: string;
+    refId: string;
+    emailSent: boolean;
+    bodyText: string;
+    targetEmail: string;
+  } | null>(null);
+  const [copied, setCopied] = useState(false);
   const [error, setError] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -28,16 +36,44 @@ export function ContactClient() {
         body: JSON.stringify(formData),
       });
 
+      const data = await res.json();
       if (!res.ok) {
-        throw new Error('Failed to send message');
+        throw new Error(data.error || 'Failed to send message');
       }
+
+      const refId = data.message?.id ? `NEXA-MSG-${data.message.id.slice(-6).toUpperCase()}` : `NEXA-MSG-${Date.now().toString().slice(-6)}`;
+      const targetEmail = data.targetEmail || 'nexasolutionsethiopia@gmail.com';
+      const bodyText =
+        `To: ${targetEmail}\n` +
+        `Subject: [Contact Us] ${formData.subject || 'General Inquiry'} - ${formData.name}\n\n` +
+        `Name: ${formData.name}\n` +
+        `Email: ${formData.email}\n` +
+        `Subject: ${formData.subject}\n` +
+        `Reference: ${refId}\n\n` +
+        `Message:\n${formData.message}\n`;
+
+      setSuccessData({
+        mailtoUrl: data.mailtoUrl || `mailto:${targetEmail}?subject=${encodeURIComponent(`[Contact Us] ${formData.subject} - ${formData.name}`)}&body=${encodeURIComponent(bodyText)}`,
+        refId,
+        emailSent: Boolean(data.emailSent),
+        bodyText,
+        targetEmail,
+      });
 
       setSubmitted(true);
       setFormData({ name: '', email: '', subject: '', message: '' });
     } catch (err: any) {
-      setError(err.message || 'Something went wrong. Please try again.');
+      setError(err.message || 'Something went wrong. Please try emailing nexasolutionsethiopia@gmail.com directly.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleCopy = () => {
+    if (successData?.bodyText) {
+      navigator.clipboard.writeText(successData.bodyText);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2500);
     }
   };
 
@@ -193,18 +229,83 @@ export function ContactClient() {
           For partnerships, inquiries, and media. We respond within 24–48 hours.
         </p>
 
-        {submitted ? (
-          <div style={{ textAlign: 'center', padding: '2rem 1rem' }}>
+        {submitted && successData ? (
+          <div style={{ textAlign: 'center', padding: '1.5rem 0.5rem' }}>
             <div style={{ width: '56px', height: '56px', borderRadius: '50%', backgroundColor: 'var(--c1-blue-soft)', color: 'var(--c1-blue)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.25rem auto' }}>
               <CheckCircle2 size={32} />
             </div>
-            <h4 style={{ fontSize: '1.25rem', marginBottom: '0.5rem' }}>Thank You for Reaching Out!</h4>
-            <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '1.5rem' }}>
-              Your message has been received by our office team. We will get back to you shortly.
+            <h4 style={{ fontSize: '1.4rem', marginBottom: '0.5rem' }}>Thank You for Reaching Out!</h4>
+            <p style={{ fontSize: '0.95rem', color: 'var(--text-muted)', marginBottom: '1.5rem' }}>
+              Your message has been securely recorded and dispatched to our administrative team.
             </p>
+
+            {successData.emailSent ? (
+              <div style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                padding: '0.4rem 0.85rem',
+                borderRadius: 'var(--radius-full)',
+                backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                color: '#10b981',
+                fontSize: '0.85rem',
+                fontWeight: 600,
+                marginBottom: '1.5rem',
+              }}>
+                <CheckCircle2 size={16} />
+                <span>Email dispatched directly to {successData.targetEmail}</span>
+              </div>
+            ) : null}
+
+            <div style={{
+              backgroundColor: 'var(--bg-card-subtle)',
+              border: '1px solid var(--border-color)',
+              borderRadius: 'var(--radius-md)',
+              padding: '1.25rem',
+              textAlign: 'left',
+              marginBottom: '1.75rem',
+            }}>
+              <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '0.35rem', fontWeight: 600 }}>
+                Official Receiving Address:
+              </div>
+              <div style={{ fontWeight: 700, color: 'var(--c1-blue)', fontSize: '1.05rem', wordBreak: 'break-all' }}>
+                {successData.targetEmail}
+              </div>
+              <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.5rem' }}>
+                Reference ID: <strong style={{ color: 'var(--text-main)', fontFamily: 'monospace' }}>{successData.refId}</strong>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', maxWidth: '420px', margin: '0 auto 1.5rem auto' }}>
+              <a
+                href={successData.mailtoUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn btn-primary"
+                style={{ width: '100%', justifyContent: 'center' }}
+              >
+                <Mail size={16} />
+                <span>Open in Your Mail App</span>
+                <ExternalLink size={14} />
+              </a>
+
+              <button
+                type="button"
+                onClick={handleCopy}
+                className="btn btn-outline"
+                style={{ width: '100%', justifyContent: 'center' }}
+              >
+                {copied ? <CheckCircle2 size={16} style={{ color: 'var(--c2-teal)' }} /> : <Copy size={16} />}
+                <span>{copied ? 'Message Draft Copied!' : 'Copy Message Draft'}</span>
+              </button>
+            </div>
+
             <button
-              onClick={() => setSubmitted(false)}
-              className="btn btn-outline"
+              onClick={() => {
+                setSubmitted(false);
+                setSuccessData(null);
+              }}
+              className="btn btn-outline btn-sm"
             >
               Send Another Note
             </button>
@@ -212,7 +313,7 @@ export function ContactClient() {
         ) : (
           <form onSubmit={handleSubmit}>
             {error && (
-              <div style={{ padding: '0.75rem', borderRadius: 'var(--radius-sm)', backgroundColor: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', fontSize: '0.85rem', marginBottom: '1rem' }}>
+              <div style={{ padding: '0.75rem', borderRadius: 'var(--radius-sm)', backgroundColor: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', fontSize: '0.85rem', marginBottom: '1rem', border: '1px solid rgba(239, 68, 68, 0.2)' }}>
                 {error}
               </div>
             )}
@@ -271,7 +372,7 @@ export function ContactClient() {
               className="btn btn-primary"
               style={{ width: '100%', marginTop: '0.5rem' }}
             >
-              {loading ? 'Sending...' : (
+              {loading ? 'Sending Message...' : (
                 <>
                   <span>Send Message</span>
                   <Send size={16} />

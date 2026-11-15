@@ -16,6 +16,20 @@ export function RequestServiceClient() {
     projectScope: '',
   });
 
+  React.useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const svc = params.get('service');
+      if (svc) {
+        setFormData((prev) => ({
+          ...prev,
+          serviceType: svc,
+          projectScope: prev.projectScope || `Requesting details and customized assets for: ${svc}`,
+        }));
+      }
+    }
+  }, []);
+
   const [loading, setLoading] = useState(false);
   const [successData, setSuccessData] = useState<{ mailtoUrl: string; refId: string; bodyText: string } | null>(null);
   const [copied, setCopied] = useState(false);
@@ -154,6 +168,19 @@ export function RequestServiceClient() {
                 value={formData.serviceType}
                 onChange={(e) => setFormData({ ...formData, serviceType: e.target.value })}
               >
+                {formData.serviceType && ![
+                  'Research: Formative Behavioral Research Protocol & Determinant Analysis',
+                  'Strategy: SBCC Strategy Roadmap & Channel Architecture',
+                  'Creative: Health Awareness Guidelines, PNG Infographics & Posters',
+                  'Creative: Campaign Video Suites & Micro-Learning Spots',
+                  'M&E: Results Framework, Indicator Matrix & Learning Questions',
+                  'Training: Facilitator Guide, Participant Materials & Coaching',
+                  'Multi-Domain: Full Health Awareness & SBCC Package',
+                ].includes(formData.serviceType) && (
+                  <option value={formData.serviceType}>
+                    Selected: {formData.serviceType}
+                  </option>
+                )}
                 <option value="Research: Formative Behavioral Research Protocol & Determinant Analysis">
                   Research — Formative Protocol, FGD Guides, Stakeholder Maps & Insight Reports
                 </option>
