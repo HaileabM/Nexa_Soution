@@ -32,6 +32,15 @@ import {
   Upload,
   FileUp,
   Menu,
+  BarChart3,
+  TrendingUp,
+  PieChart,
+  Activity,
+  ArrowUpRight,
+  CheckCheck,
+  Calendar,
+  Briefcase,
+  Radio,
 } from 'lucide-react';
 
 interface ServiceItem {
@@ -105,7 +114,7 @@ export function DashboardClient({
   const router = useRouter();
   const { theme, toggleTheme } = useTheme();
 
-  const [activeTab, setActiveTab] = useState<'services' | 'news' | 'inquiries' | 'messages' | 'password'>('services');
+  const [activeTab, setActiveTab] = useState<'analytics' | 'services' | 'news' | 'inquiries' | 'messages' | 'password'>('analytics');
 
   // Services State
   const [services, setServices] = useState<ServiceItem[]>(initialServices);
@@ -610,6 +619,14 @@ export function DashboardClient({
           </div>
 
           <button
+            onClick={() => { setActiveTab('analytics'); setSidebarOpen(false); }}
+            className={`admin-sidebar-btn ${activeTab === 'analytics' ? 'active' : ''}`}
+          >
+            <BarChart3 size={18} />
+            <span style={{ flex: 1 }}>Analytics</span>
+          </button>
+
+          <button
             onClick={() => { setActiveTab('services'); setSidebarOpen(false); }}
             className={`admin-sidebar-btn ${activeTab === 'services' ? 'active' : ''}`}
           >
@@ -669,37 +686,6 @@ export function DashboardClient({
             <span style={{ flex: 1 }}>Change Password</span>
           </button>
         </nav>
-
-        {/* Sidebar Footer Shortcuts */}
-        <div className="admin-sidebar-footer">
-          <Link
-            href="/"
-            target="_blank"
-            className="btn btn-outline btn-sm"
-            style={{ width: '100%', justifyContent: 'flex-start', gap: '0.5rem' }}
-          >
-            <ExternalLink size={15} />
-            <span>View Public Site</span>
-          </Link>
-
-          <button
-            onClick={toggleTheme}
-            className="btn btn-outline btn-sm"
-            style={{ width: '100%', justifyContent: 'flex-start', gap: '0.5rem' }}
-          >
-            {theme === 'light' ? <Moon size={15} /> : <Sun size={15} />}
-            <span>{theme === 'light' ? 'Dark Mode' : 'Light Mode'}</span>
-          </button>
-
-          <button
-            onClick={handleLogout}
-            className="btn btn-outline btn-sm"
-            style={{ width: '100%', justifyContent: 'flex-start', gap: '0.5rem', color: '#ef4444', borderColor: 'rgba(239, 68, 68, 0.3)' }}
-          >
-            <LogOut size={15} />
-            <span>Sign Out</span>
-          </button>
-        </div>
       </aside>
 
       {/* Main Right Content Area */}
@@ -716,6 +702,7 @@ export function DashboardClient({
             </button>
             <div>
               <h1 style={{ fontSize: '1.2rem', fontWeight: 800, margin: 0 }}>
+                {activeTab === 'analytics' && 'Analytics & Performance Overview'}
                 {activeTab === 'services' && 'Deliverables & Materials'}
                 {activeTab === 'news' && 'News & SBCC Insights'}
                 {activeTab === 'inquiries' && 'Incoming Service Requests'}
@@ -744,10 +731,11 @@ export function DashboardClient({
             <button
               onClick={handleLogout}
               className="btn btn-outline btn-sm"
-              style={{ color: '#ef4444', borderColor: 'rgba(239, 68, 68, 0.3)' }}
+              style={{ color: '#ef4444', borderColor: 'rgba(239, 68, 68, 0.3)', display: 'flex', alignItems: 'center', gap: '0.35rem' }}
               title="Sign Out"
             >
               <LogOut size={14} />
+              <span>Sign Out</span>
             </button>
           </div>
         </header>
@@ -776,70 +764,633 @@ export function DashboardClient({
 
         {/* Main Admin Content */}
         <main className="admin-main">
-          {/* Metric Overview Cards */}
-          <div className="grid-4" style={{ marginBottom: '2.5rem' }}>
-            <div className="card" style={{ padding: '1.25rem' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-                <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>
-                  Active Deliverables
-                </span>
-                <Layers size={18} style={{ color: 'var(--c1-blue)' }} />
-              </div>
-              <div style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--c1-blue)' }}>
-                {services.length}
-              </div>
-            </div>
-
-            <div className="card" style={{ padding: '1.25rem' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-                <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>
-                  News & Articles
-                </span>
-                <Newspaper size={18} style={{ color: 'var(--c2-teal)' }} />
-              </div>
-              <div style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--c2-teal)' }}>
-                {newsList.length}
-              </div>
-            </div>
-
-            <div className="card" style={{ padding: '1.25rem' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-                <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>
-                  Service Requests
-                </span>
-                <Inbox size={18} style={{ color: 'var(--c3-purple)' }} />
-              </div>
-              <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.5rem' }}>
-                <div style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--c3-purple)' }}>
-                  {inquiries.length}
+          {/* =================================================================
+              TAB 0: ANALYTICS & DASHBOARD OVERVIEW (LANDING PAGE)
+              ================================================================= */}
+          {activeTab === 'analytics' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+              {/* Welcome & Quick Action Banner */}
+              <div
+                className="card"
+                style={{
+                  padding: '1.75rem 2rem',
+                  background: 'linear-gradient(135deg, var(--bg-card) 0%, var(--bg-card-subtle) 100%)',
+                  borderLeft: '4px solid var(--c1-blue)',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  flexWrap: 'wrap',
+                  gap: '1.5rem',
+                }}
+              >
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', marginBottom: '0.35rem' }}>
+                    <span style={{ fontSize: '1.35rem', fontWeight: 800 }}>
+                      Welcome back, {adminUser.name}
+                    </span>
+                    <span className="badge badge-teal" style={{ fontSize: '0.7rem' }}>
+                      Operational Portal Active
+                    </span>
+                  </div>
+                  <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem', margin: 0, maxWidth: '650px' }}>
+                    Real-time performance metrics, client service intake, SBCC deliverable distributions, and website communication feeds for Nexa Solutions Ethiopia.
+                  </p>
                 </div>
-                {inquiries.filter((i) => i.status === 'PENDING').length > 0 && (
-                  <span className="badge badge-orange" style={{ fontSize: '0.75rem' }}>
-                    {inquiries.filter((i) => i.status === 'PENDING').length} new
-                  </span>
-                )}
-              </div>
-            </div>
 
-            <div className="card" style={{ padding: '1.25rem' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-                <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>
-                  Contact Messages
-                </span>
-                <Mail size={18} style={{ color: 'var(--c2-teal)' }} />
-              </div>
-              <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.5rem' }}>
-                <div style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--c2-teal)' }}>
-                  {contactMessages.length}
+                <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+                  <button
+                    onClick={openCreateServiceModal}
+                    className="btn btn-primary btn-sm"
+                    style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}
+                  >
+                    <Plus size={15} />
+                    <span>New Deliverable</span>
+                  </button>
+                  <button
+                    onClick={openCreateNewsModal}
+                    className="btn btn-outline btn-sm"
+                    style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}
+                  >
+                    <Plus size={15} />
+                    <span>Post Insight</span>
+                  </button>
+                  <button
+                    onClick={() => setActiveTab('inquiries')}
+                    className="btn btn-outline btn-sm"
+                    style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}
+                  >
+                    <Inbox size={15} />
+                    <span>View Requests</span>
+                  </button>
                 </div>
-                {contactMessages.filter((m) => m.status === 'UNREAD').length > 0 && (
-                  <span className="badge badge-teal" style={{ fontSize: '0.75rem' }}>
-                    {contactMessages.filter((m) => m.status === 'UNREAD').length} unread
-                  </span>
-                )}
+              </div>
+
+              {/* KPI Summary Cards */}
+              <div className="grid-4">
+                {/* 1. Deliverables Card */}
+                <div className="card" style={{ padding: '1.4rem' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem' }}>
+                    <div>
+                      <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                        Deliverables & Assets
+                      </span>
+                      <div style={{ fontSize: '2.1rem', fontWeight: 800, color: 'var(--c1-blue)', lineHeight: 1.15, marginTop: '0.25rem' }}>
+                        {services.length}
+                      </div>
+                    </div>
+                    <div style={{ width: '42px', height: '42px', borderRadius: 'var(--radius-md)', backgroundColor: 'var(--c1-blue-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--c1-blue)' }}>
+                      <Layers size={22} />
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '0.75rem', borderTop: '1px solid var(--border-color)', fontSize: '0.75rem' }}>
+                    <span style={{ color: 'var(--text-muted)' }}>
+                      {services.filter((s) => s.isFeatured).length} featured works
+                    </span>
+                    <button
+                      onClick={() => setActiveTab('services')}
+                      style={{ background: 'none', border: 'none', color: 'var(--c1-blue)', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.25rem', padding: 0 }}
+                    >
+                      Manage <ArrowUpRight size={12} />
+                    </button>
+                  </div>
+                </div>
+
+                {/* 2. Service Inquiries Card */}
+                <div className="card" style={{ padding: '1.4rem' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem' }}>
+                    <div>
+                      <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                        Service Requests
+                      </span>
+                      <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.5rem', marginTop: '0.25rem' }}>
+                        <div style={{ fontSize: '2.1rem', fontWeight: 800, color: 'var(--c3-purple)', lineHeight: 1.15 }}>
+                          {inquiries.length}
+                        </div>
+                        {inquiries.filter((i) => i.status === 'PENDING').length > 0 && (
+                          <span className="badge badge-orange" style={{ fontSize: '0.7rem' }}>
+                            {inquiries.filter((i) => i.status === 'PENDING').length} pending
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <div style={{ width: '42px', height: '42px', borderRadius: 'var(--radius-md)', backgroundColor: 'var(--c3-purple-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--c3-purple)' }}>
+                      <Inbox size={22} />
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '0.75rem', borderTop: '1px solid var(--border-color)', fontSize: '0.75rem' }}>
+                    <span style={{ color: 'var(--text-muted)' }}>
+                      {inquiries.filter((i) => i.status === 'COMPLETED').length} projects fulfilled
+                    </span>
+                    <button
+                      onClick={() => setActiveTab('inquiries')}
+                      style={{ background: 'none', border: 'none', color: 'var(--c3-purple)', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.25rem', padding: 0 }}
+                    >
+                      Review <ArrowUpRight size={12} />
+                    </button>
+                  </div>
+                </div>
+
+                {/* 3. Contact Messages Card */}
+                <div className="card" style={{ padding: '1.4rem' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem' }}>
+                    <div>
+                      <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                        Contact Inquiries
+                      </span>
+                      <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.5rem', marginTop: '0.25rem' }}>
+                        <div style={{ fontSize: '2.1rem', fontWeight: 800, color: 'var(--c2-teal)', lineHeight: 1.15 }}>
+                          {contactMessages.length}
+                        </div>
+                        {contactMessages.filter((m) => m.status === 'UNREAD').length > 0 && (
+                          <span className="badge badge-teal" style={{ fontSize: '0.7rem' }}>
+                            {contactMessages.filter((m) => m.status === 'UNREAD').length} unread
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <div style={{ width: '42px', height: '42px', borderRadius: 'var(--radius-md)', backgroundColor: 'var(--c2-teal-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--c2-teal)' }}>
+                      <Mail size={22} />
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '0.75rem', borderTop: '1px solid var(--border-color)', fontSize: '0.75rem' }}>
+                    <span style={{ color: 'var(--text-muted)' }}>
+                      {contactMessages.filter((m) => m.status === 'REPLIED').length} replied
+                    </span>
+                    <button
+                      onClick={() => setActiveTab('messages')}
+                      style={{ background: 'none', border: 'none', color: 'var(--c2-teal)', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.25rem', padding: 0 }}
+                    >
+                      Inbox <ArrowUpRight size={12} />
+                    </button>
+                  </div>
+                </div>
+
+                {/* 4. News & Publications Card */}
+                <div className="card" style={{ padding: '1.4rem' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem' }}>
+                    <div>
+                      <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                        News & Insights
+                      </span>
+                      <div style={{ fontSize: '2.1rem', fontWeight: 800, color: '#0ea5e9', lineHeight: 1.15, marginTop: '0.25rem' }}>
+                        {newsList.length}
+                      </div>
+                    </div>
+                    <div style={{ width: '42px', height: '42px', borderRadius: 'var(--radius-md)', backgroundColor: 'rgba(14, 165, 233, 0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#0ea5e9' }}>
+                      <Newspaper size={22} />
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '0.75rem', borderTop: '1px solid var(--border-color)', fontSize: '0.75rem' }}>
+                    <span style={{ color: 'var(--text-muted)' }}>
+                      {newsList.filter((n) => n.published).length} published articles
+                    </span>
+                    <button
+                      onClick={() => setActiveTab('news')}
+                      style={{ background: 'none', border: 'none', color: '#0ea5e9', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.25rem', padding: 0 }}
+                    >
+                      Editorial <ArrowUpRight size={12} />
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Grid: Request Pipeline Status & Category Distribution */}
+              <div className="grid-2">
+                {/* Card Left: Inquiries Pipeline Progress Bar */}
+                <div className="card" style={{ padding: '1.75rem' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
+                    <div>
+                      <h3 style={{ fontSize: '1.1rem', fontWeight: 800, margin: 0 }}>
+                        Service Inquiries Pipeline
+                      </h3>
+                      <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: '0.25rem 0 0' }}>
+                        Intake lifecycle & client project fulfillment status
+                      </p>
+                    </div>
+                    <span className="badge badge-neutral" style={{ fontSize: '0.75rem' }}>
+                      {inquiries.length} Total
+                    </span>
+                  </div>
+
+                  {/* Visual Progress Bar */}
+                  <div style={{
+                    height: '14px',
+                    borderRadius: '7px',
+                    backgroundColor: 'var(--bg-card-subtle)',
+                    display: 'flex',
+                    overflow: 'hidden',
+                    marginBottom: '1.5rem',
+                    border: '1px solid var(--border-color)',
+                  }}>
+                    {inquiries.length === 0 ? (
+                      <div style={{ width: '100%', backgroundColor: 'var(--border-color)' }} />
+                    ) : (
+                      <>
+                        <div
+                          style={{
+                            width: `${(inquiries.filter((i) => i.status === 'PENDING').length / inquiries.length) * 100}%`,
+                            backgroundColor: '#f59e0b',
+                            transition: 'width 0.4s ease',
+                          }}
+                          title={`Pending: ${inquiries.filter((i) => i.status === 'PENDING').length}`}
+                        />
+                        <div
+                          style={{
+                            width: `${(inquiries.filter((i) => i.status === 'IN_REVIEW').length / inquiries.length) * 100}%`,
+                            backgroundColor: 'var(--c1-blue)',
+                            transition: 'width 0.4s ease',
+                          }}
+                          title={`In Review: ${inquiries.filter((i) => i.status === 'IN_REVIEW').length}`}
+                        />
+                        <div
+                          style={{
+                            width: `${(inquiries.filter((i) => i.status === 'COMPLETED').length / inquiries.length) * 100}%`,
+                            backgroundColor: 'var(--c2-teal)',
+                            transition: 'width 0.4s ease',
+                          }}
+                          title={`Completed: ${inquiries.filter((i) => i.status === 'COMPLETED').length}`}
+                        />
+                        <div
+                          style={{
+                            width: `${(inquiries.filter((i) => i.status === 'REJECTED').length / inquiries.length) * 100}%`,
+                            backgroundColor: '#94a3b8',
+                            transition: 'width 0.4s ease',
+                          }}
+                          title={`Closed: ${inquiries.filter((i) => i.status === 'REJECTED').length}`}
+                        />
+                      </>
+                    )}
+                  </div>
+
+                  {/* Pipeline Details */}
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1rem' }}>
+                    <div style={{ padding: '0.85rem', borderRadius: 'var(--radius-md)', backgroundColor: 'var(--bg-card-subtle)', borderLeft: '3px solid #f59e0b' }}>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600 }}>Pending Triage</div>
+                      <div style={{ fontSize: '1.3rem', fontWeight: 800, color: '#f59e0b', marginTop: '0.2rem' }}>
+                        {inquiries.filter((i) => i.status === 'PENDING').length}
+                      </div>
+                      <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
+                        {inquiries.length > 0 ? Math.round((inquiries.filter((i) => i.status === 'PENDING').length / inquiries.length) * 100) : 0}% of inquiries
+                      </div>
+                    </div>
+
+                    <div style={{ padding: '0.85rem', borderRadius: 'var(--radius-md)', backgroundColor: 'var(--bg-card-subtle)', borderLeft: '3px solid var(--c1-blue)' }}>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600 }}>Under Review / Scoping</div>
+                      <div style={{ fontSize: '1.3rem', fontWeight: 800, color: 'var(--c1-blue)', marginTop: '0.2rem' }}>
+                        {inquiries.filter((i) => i.status === 'IN_REVIEW').length}
+                      </div>
+                      <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
+                        {inquiries.length > 0 ? Math.round((inquiries.filter((i) => i.status === 'IN_REVIEW').length / inquiries.length) * 100) : 0}% in progress
+                      </div>
+                    </div>
+
+                    <div style={{ padding: '0.85rem', borderRadius: 'var(--radius-md)', backgroundColor: 'var(--bg-card-subtle)', borderLeft: '3px solid var(--c2-teal)' }}>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600 }}>Fulfilled & Delivered</div>
+                      <div style={{ fontSize: '1.3rem', fontWeight: 800, color: 'var(--c2-teal)', marginTop: '0.2rem' }}>
+                        {inquiries.filter((i) => i.status === 'COMPLETED').length}
+                      </div>
+                      <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
+                        {inquiries.length > 0 ? Math.round((inquiries.filter((i) => i.status === 'COMPLETED').length / inquiries.length) * 100) : 0}% success rate
+                      </div>
+                    </div>
+
+                    <div style={{ padding: '0.85rem', borderRadius: 'var(--radius-md)', backgroundColor: 'var(--bg-card-subtle)', borderLeft: '3px solid #94a3b8' }}>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600 }}>Archived / Closed</div>
+                      <div style={{ fontSize: '1.3rem', fontWeight: 800, color: 'var(--text-main)', marginTop: '0.2rem' }}>
+                        {inquiries.filter((i) => i.status === 'REJECTED').length}
+                      </div>
+                      <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
+                        {inquiries.length > 0 ? Math.round((inquiries.filter((i) => i.status === 'REJECTED').length / inquiries.length) * 100) : 0}% closed
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Card Right: Deliverables by SBCC Pillar */}
+                <div className="card" style={{ padding: '1.75rem' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
+                    <div>
+                      <h3 style={{ fontSize: '1.1rem', fontWeight: 800, margin: 0 }}>
+                        Deliverables by SBCC Pillar
+                      </h3>
+                      <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: '0.25rem 0 0' }}>
+                        Asset allocation across core strategic capabilities
+                      </p>
+                    </div>
+                    <span className="badge badge-blue" style={{ fontSize: '0.75rem' }}>
+                      5 Strategic Pillars
+                    </span>
+                  </div>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.9rem' }}>
+                    {[
+                      { label: 'Creative & Campaign Production', category: 'Creative', color: 'var(--c1-blue)' },
+                      { label: 'Research & Formative Studies', category: 'Research', color: 'var(--c2-teal)' },
+                      { label: 'Strategy & Framework Design', category: 'Strategy', color: 'var(--c3-purple)' },
+                      { label: 'Monitoring & Evaluation (M&E)', category: 'M&E', color: '#f59e0b' },
+                      { label: 'Capacity Building & Training', category: 'Training', color: '#ec4899' },
+                    ].map((pillar) => {
+                      const count = services.filter((s) => s.category === pillar.category).length;
+                      const pct = services.length > 0 ? Math.round((count / services.length) * 100) : 0;
+                      return (
+                        <div key={pillar.category}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.8rem', marginBottom: '0.3rem', fontWeight: 600 }}>
+                            <span style={{ color: 'var(--text-main)' }}>{pillar.label}</span>
+                            <span style={{ color: 'var(--text-muted)' }}>
+                              {count} ({pct}%)
+                            </span>
+                          </div>
+                          <div style={{ height: '7px', borderRadius: '4px', backgroundColor: 'var(--bg-card-subtle)', overflow: 'hidden' }}>
+                            <div
+                              style={{
+                                height: '100%',
+                                width: `${pct}%`,
+                                backgroundColor: pillar.color,
+                                borderRadius: '4px',
+                                transition: 'width 0.5s ease',
+                              }}
+                            />
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+
+              {/* Grid: Resource Formats & Platform Infrastructure Status */}
+              <div className="grid-2">
+                {/* Resource Formats */}
+                <div className="card" style={{ padding: '1.75rem' }}>
+                  <h3 style={{ fontSize: '1.1rem', fontWeight: 800, margin: '0 0 0.25rem' }}>
+                    Asset Media & Deliverable Formats
+                  </h3>
+                  <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: '0 0 1.25rem' }}>
+                    Production format distribution across digital guidelines, toolkits, audio, and video
+                  </p>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem', padding: '0.85rem', borderRadius: 'var(--radius-md)', backgroundColor: 'var(--bg-card-subtle)' }}>
+                      <div style={{ width: '38px', height: '38px', borderRadius: 'var(--radius-sm)', backgroundColor: 'rgba(239, 68, 68, 0.12)', color: '#ef4444', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <FileText size={20} />
+                      </div>
+                      <div>
+                        <div style={{ fontSize: '1.2rem', fontWeight: 800 }}>
+                          {services.filter((s) => s.type === 'PDF').length}
+                        </div>
+                        <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                          PDF Guides & Strategies
+                        </div>
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem', padding: '0.85rem', borderRadius: 'var(--radius-md)', backgroundColor: 'var(--bg-card-subtle)' }}>
+                      <div style={{ width: '38px', height: '38px', borderRadius: 'var(--radius-sm)', backgroundColor: 'rgba(14, 165, 233, 0.12)', color: '#0ea5e9', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <Video size={20} />
+                      </div>
+                      <div>
+                        <div style={{ fontSize: '1.2rem', fontWeight: 800 }}>
+                          {services.filter((s) => s.type === 'Video').length}
+                        </div>
+                        <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                          Video & Motion Materials
+                        </div>
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem', padding: '0.85rem', borderRadius: 'var(--radius-md)', backgroundColor: 'var(--bg-card-subtle)' }}>
+                      <div style={{ width: '38px', height: '38px', borderRadius: 'var(--radius-sm)', backgroundColor: 'rgba(168, 85, 247, 0.12)', color: '#a855f7', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <Radio size={20} />
+                      </div>
+                      <div>
+                        <div style={{ fontSize: '1.2rem', fontWeight: 800 }}>
+                          {services.filter((s) => s.type === 'Audio').length}
+                        </div>
+                        <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                          Audio Spots & Jingles
+                        </div>
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem', padding: '0.85rem', borderRadius: 'var(--radius-md)', backgroundColor: 'var(--bg-card-subtle)' }}>
+                      <div style={{ width: '38px', height: '38px', borderRadius: 'var(--radius-sm)', backgroundColor: 'rgba(16, 185, 129, 0.12)', color: '#10b981', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <Briefcase size={20} />
+                      </div>
+                      <div>
+                        <div style={{ fontSize: '1.2rem', fontWeight: 800 }}>
+                          {services.filter((s) => !['PDF', 'Video', 'Audio'].includes(s.type)).length}
+                        </div>
+                        <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                          Toolkits & Interactive Models
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Operations & Communications Relay */}
+                <div className="card" style={{ padding: '1.75rem' }}>
+                  <h3 style={{ fontSize: '1.1rem', fontWeight: 800, margin: '0 0 0.25rem' }}>
+                    Operations & Notification Gateway
+                  </h3>
+                  <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: '0 0 1.25rem' }}>
+                    Real-time platform dispatch channels and server health status
+                  </p>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.75rem 0.95rem', borderRadius: 'var(--radius-md)', backgroundColor: 'var(--bg-card-subtle)' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+                        <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#10b981', boxShadow: '0 0 8px #10b981' }} />
+                        <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>Email Notification Dispatch</span>
+                      </div>
+                      <span style={{ fontSize: '0.75rem', color: 'var(--c2-teal)', fontWeight: 700 }}>
+                        nexasolutionsethiopia@gmail.com
+                      </span>
+                    </div>
+
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.75rem 0.95rem', borderRadius: 'var(--radius-md)', backgroundColor: 'var(--bg-card-subtle)' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+                        <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#10b981' }} />
+                        <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>Database & Fallback Engine</span>
+                      </div>
+                      <span className="badge badge-blue" style={{ fontSize: '0.75rem' }}>
+                        Prisma SQLite Resilient
+                      </span>
+                    </div>
+
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.75rem 0.95rem', borderRadius: 'var(--radius-md)', backgroundColor: 'var(--bg-card-subtle)' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+                        <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#10b981' }} />
+                        <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>Active Session</span>
+                      </div>
+                      <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                        @{adminUser.username} ({adminUser.role})
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Grid: Recent Incoming Activity */}
+              <div className="grid-2">
+                {/* Recent Inquiries */}
+                <div className="card" style={{ padding: '1.75rem' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                    <div>
+                      <h3 style={{ fontSize: '1.1rem', fontWeight: 800, margin: 0 }}>
+                        Recent Service Inquiries
+                      </h3>
+                      <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: '0.2rem 0 0' }}>
+                        Latest organizations requesting SBCC partnerships
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => setActiveTab('inquiries')}
+                      className="btn btn-outline btn-sm"
+                    >
+                      View All ({inquiries.length})
+                    </button>
+                  </div>
+
+                  {inquiries.length === 0 ? (
+                    <div style={{ padding: '2rem 1rem', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.875rem' }}>
+                      No service requests received yet.
+                    </div>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                      {inquiries.slice(0, 4).map((item) => (
+                        <div
+                          key={item.id}
+                          style={{
+                            padding: '0.75rem 0.95rem',
+                            borderRadius: 'var(--radius-md)',
+                            backgroundColor: 'var(--bg-card-subtle)',
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            gap: '0.75rem',
+                          }}
+                        >
+                          <div style={{ minWidth: 0, flex: 1 }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.2rem' }}>
+                              <span style={{ fontWeight: 700, fontSize: '0.85rem' }}>
+                                {item.organization || item.name}
+                              </span>
+                              <span
+                                className={`badge ${
+                                  item.status === 'PENDING'
+                                    ? 'badge-orange'
+                                    : item.status === 'IN_REVIEW'
+                                    ? 'badge-blue'
+                                    : item.status === 'COMPLETED'
+                                    ? 'badge-teal'
+                                    : 'badge-neutral'
+                                }`}
+                                style={{ fontSize: '0.65rem', padding: '0.1rem 0.4rem' }}
+                              >
+                                {item.status}
+                              </span>
+                            </div>
+                            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                              {item.serviceType} • {item.name}
+                            </div>
+                          </div>
+
+                          <button
+                            onClick={() => {
+                              setSelectedInquiry(item);
+                              setActiveTab('inquiries');
+                            }}
+                            className="btn btn-outline btn-sm"
+                            style={{ padding: '0.3rem 0.65rem', fontSize: '0.75rem' }}
+                          >
+                            Details
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Recent Contact Messages */}
+                <div className="card" style={{ padding: '1.75rem' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                    <div>
+                      <h3 style={{ fontSize: '1.1rem', fontWeight: 800, margin: 0 }}>
+                        Recent Contact Messages
+                      </h3>
+                      <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: '0.2rem 0 0' }}>
+                        Direct website inquiries from public visitors
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => setActiveTab('messages')}
+                      className="btn btn-outline btn-sm"
+                    >
+                      View All ({contactMessages.length})
+                    </button>
+                  </div>
+
+                  {contactMessages.length === 0 ? (
+                    <div style={{ padding: '2rem 1rem', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.875rem' }}>
+                      No contact messages received yet.
+                    </div>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                      {contactMessages.slice(0, 4).map((msg) => (
+                        <div
+                          key={msg.id}
+                          style={{
+                            padding: '0.75rem 0.95rem',
+                            borderRadius: 'var(--radius-md)',
+                            backgroundColor: 'var(--bg-card-subtle)',
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            gap: '0.75rem',
+                          }}
+                        >
+                          <div style={{ minWidth: 0, flex: 1 }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.2rem' }}>
+                              <span style={{ fontWeight: 700, fontSize: '0.85rem' }}>
+                                {msg.name}
+                              </span>
+                              <span
+                                className={`badge ${
+                                  msg.status === 'UNREAD'
+                                    ? 'badge-teal'
+                                    : msg.status === 'REPLIED'
+                                    ? 'badge-blue'
+                                    : 'badge-neutral'
+                                }`}
+                                style={{ fontSize: '0.65rem', padding: '0.1rem 0.4rem' }}
+                              >
+                                {msg.status}
+                              </span>
+                            </div>
+                            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                              {msg.subject || msg.message}
+                            </div>
+                          </div>
+
+                          <button
+                            onClick={() => {
+                              setSelectedMessage(msg);
+                              setActiveTab('messages');
+                            }}
+                            className="btn btn-outline btn-sm"
+                            style={{ padding: '0.3rem 0.65rem', fontSize: '0.75rem' }}
+                          >
+                            Read
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
-          </div>
+          )}
 
         {/* =================================================================
             TAB 1: SERVICES & HEALTH MATERIALS MANAGEMENT
